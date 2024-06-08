@@ -1,2 +1,3 @@
-# ignore cmake build dir
+# CMake and Conan
 build/
+CMakeUserPresets.json
