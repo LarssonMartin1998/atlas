@@ -4,8 +4,14 @@ project(atlas)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(GTest REQUIRED)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(${PROJECT_NAME} STATIC)
-target_sources(${PROJECT_NAME} PRIVATE src/atlas/atlas.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE gtest::gtest)
+
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+
+include(CTest)
+
+add_subdirectory(include)
+add_subdirectory(src)
+add_subdirectory(tests)

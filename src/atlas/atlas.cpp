@@ -1,3 +1,7 @@
+#include "atlas.hpp"
+
 #include <iostream>
 
-auto atlas() -> void { std::cout << "Atlas\n"; }
+namespace atlas {
+auto lib_entry() -> void { std::cout << "Hello from Atlas!\n"; }
+} // namespace atlas

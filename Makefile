@@ -4,6 +4,7 @@ CMAKE = cmake
 CMAKE_FLAGS = -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 CONAN = conan
 CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing
+CTEST = ctest
 
 # Default target
 .PHONY: all
@@ -24,6 +25,13 @@ build:
 	@echo "Building the project..."
 	@$(CMAKE) --build $(BUILD_DIR)
 	@echo "Build complete."
+
+# Test target
+.PHONY: test
+test:
+	@echo "Running tests..."
+	@cd $(BUILD_DIR) && $(CTEST) --output-on-failure
+	@echo "Tests complete."
 
 # Clean target
 .PHONY: clean
