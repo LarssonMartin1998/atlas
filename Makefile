@@ -3,6 +3,7 @@ BUILD_DIR = build
 CMAKE = cmake
 CMAKE_FLAGS = -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 CONAN = conan
+CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing
 
 # Default target
 .PHONY: all
@@ -13,7 +14,7 @@ all: clean setup build
 setup:
 	@echo "Setting up the build environment..."
 	@mkdir -p $(BUILD_DIR)
-	@$(CONAN) install . --output-folder=$(BUILD_DIR) --build=missing
+	@$(CONAN) $(CONAN_FLAGS)
 	@cd $(BUILD_DIR) && $(CMAKE) $(CMAKE_FLAGS) ..
 	@echo "Environment setup complete."
 
