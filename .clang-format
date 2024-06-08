@@ -1,0 +1,42 @@
+BasedOnStyle: LLVM
+Standard: C++23
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AllowShortFunctionsOnASingleLine: All
+BreakBeforeBraces: Attach
+ColumnLimit: 100
+NamespaceIndentation: All
+DerivePointerAlignment: false
+PointerAlignment: Left
+AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+SpacesInAngles: false
+SpaceBeforeParens: ControlStatements
+IndentCaseLabels: true
+AllowAllParametersOfDeclarationOnNextLine: false
+IndentPPDirectives: AfterHash
+MaxEmptyLinesToKeep: 1
+IncludeBlocks: Preserve
+SortIncludes: false
+
+# Identifier naming rules
+IdentifierNaming:
+  VariableCase: snake_case
+  GlobalVariableCase: snake_case
+  NamespaceCase: snake_case
+  ClassCase: snake_case
+  StructCase: snake_case
+  FunctionCase: snake_case
+  ClassMemberCase: snake_case
+  EnumCase: snake_case
+  EnumConstantCase: snake_case
+  ConstantCase: snake_case
+  MemberCase: snake_case
+  ParameterCase: snake_case
+  PrivateMemberPrefix: ''
+  ProtectedMemberPrefix: ''
+
+# Disable some clang-format checks that might be too strict
+DisableFormat: false
+
