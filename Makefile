@@ -7,8 +7,8 @@ CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing
 CTEST = ctest
 
 # Default target
-.PHONY: all
-all: clean setup build
+.PHONY: all # Don't run this as go-to during development, only intended as a CI target/clean build.
+all: clean setup build analyze test
 
 # Setup target
 .PHONY: setup
@@ -32,6 +32,13 @@ test:
 	@echo "Running tests..."
 	@cd $(BUILD_DIR) && $(CTEST) --output-on-failure
 	@echo "Tests complete."
+
+# Analyze target
+.PHONY: analyze
+analyze:
+	@echo "Analyzing the project..."
+	@scan-build $(MAKE) build
+	@echo "Analysis complete."
 
 # Clean target
 .PHONY: clean
