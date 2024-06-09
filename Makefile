@@ -10,6 +10,8 @@ CTEST = ctest
 .PHONY: all # Don't run this as go-to during development, only intended as a CI target/clean build.
 all: clean setup build analyze test
 
+.DEFAULT_GOAL := all
+
 # Setup target
 .PHONY: setup
 setup:
