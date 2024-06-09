@@ -1,5 +1,6 @@
 [requires]
 gtest/1.14.0
+raylib/5.0
 
 [generators]
 CMakeDeps
