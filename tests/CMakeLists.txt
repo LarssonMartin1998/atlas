@@ -1,9 +1,9 @@
-find_package(GTest REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
-add_executable(all_tests)
+add_executable(atlas_core)
 
-target_link_libraries(all_tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
-target_sources(all_tests PRIVATE test_atlas.cpp)
+target_link_libraries(atlas_core PRIVATE ${PROJECT_NAME} GTest::gtest_main)
+target_sources(atlas_core PRIVATE TestMain.cpp TestEngine.cpp TestModule.cpp)
 
 include(GoogleTest)
-gtest_discover_tests(all_tests)
+gtest_discover_tests(atlas_core)
