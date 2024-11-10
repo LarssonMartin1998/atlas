@@ -1,9 +1,11 @@
 # Variables
+BUILD_TESTS ?= ON
+BUILD_TYPE ?= Debug
 BUILD_DIR = build
 CMAKE = cmake
-CMAKE_FLAGS = -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+CMAKE_FLAGS = -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_TESTS=$(BUILD_TESTS)
 CONAN = conan
-CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing
+CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing -s build_type=$(BUILD_TYPE)
 CTEST = ctest
 
 # Default target
@@ -46,5 +48,5 @@ analyze:
 .PHONY: clean
 clean:
 	@echo "Cleaning up..."
-	@rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR) CMakeUserPresets.json .cache
 	@echo "Cleanup complete."
