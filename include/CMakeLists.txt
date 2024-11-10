@@ -1,1 +1,1 @@
-target_include_directories(${PROJECT_NAME} PUBLIC atlas)
+target_include_directories(${PROJECT_NAME} PUBLIC atlas/core)
