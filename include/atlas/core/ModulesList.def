@@ -1,0 +1,18 @@
+// This file is used to conditinonally create and initialize modules in the engine
+// if they are included in the build. See Engine.cpp, atlas/CMakeLists.txt, and SetupModules.cmake
+// for more information.
+
+/* The module name should be the same everywhere with some different capitalization:
+atlas/modules/module
+Module in SetupModules.cmake
+IModule in interface
+Module in the module class
+MODULE in the Preprocessor definition
+MODULE in EModules.hpp
+*/
+
+// MODULE(ModuleClassName)
+
+#ifdef HEPHAESTUS
+MODULE(Hephaestus, hephaestus)
+#endif
