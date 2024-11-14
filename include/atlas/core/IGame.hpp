@@ -11,6 +11,8 @@ class IGame {
     IGame(IGame &&) = delete;
     auto operator=(IGame &&) -> IGame & = delete;
 
+    [[nodiscard]] virtual auto should_quit() const -> bool = 0;
+
   protected:
     IGame() = default;
 };
