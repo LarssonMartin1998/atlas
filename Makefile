@@ -18,6 +18,7 @@ all: clean setup build analyze test
 .PHONY: setup
 setup:
 	@echo "Setting up the build environment..."
+	@ln -sf $(BUILD_DIR)/compile_commands.json compile_commands.json
 	@mkdir -p $(BUILD_DIR)
 	@$(CONAN) $(CONAN_FLAGS)
 	@cd $(BUILD_DIR) && $(CMAKE) $(CMAKE_FLAGS) ..
