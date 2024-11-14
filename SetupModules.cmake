@@ -1,0 +1,26 @@
+if(NOT DEFINED ATLAS_MODULES)
+  message(STATUS "No modules specified, skipping module setup")
+  return()
+endif()
+
+set(AVAILABLE_ATLAS_MODULES Hephaestus)
+
+set(ATLAS_MODULES_UPPER)
+foreach(module IN LISTS ATLAS_MODULES)
+  string(TOUPPER "${module}" module_upper)
+  list(APPEND ATLAS_MODULES_UPPER "${module_upper}")
+endforeach()
+
+foreach(module IN LISTS AVAILABLE_ATLAS_MODULES)
+  string(TOUPPER "${module}" MODULE_UPPER)
+  string(TOLOWER "${module}" MODULE_LOWER)
+
+  list(FIND ATLAS_MODULES_UPPER "${MODULE_UPPER}" module_index)
+  if(module_index GREATER -1)
+    message(STATUS "Adding module: ${module}")
+    target_compile_definitions(atlas PUBLIC "${MODULE_UPPER}")
+    add_subdirectory("modules/${MODULE_LOWER}")
+  else()
+    message(STATUS "Skipping module: ${module}")
+  endif()
+endforeach()
