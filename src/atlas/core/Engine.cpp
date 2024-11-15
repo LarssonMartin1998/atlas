@@ -8,7 +8,7 @@
 #endif
 
 namespace atlas::core {
-Engine::Engine(std::unique_ptr<IGame> game) : game(std::move(game)) {
+Engine::Engine(std::unique_ptr<IGame> gameparam) : game(std::move(gameparam)) {
     std::println("Engine created");
 
     create_modules();
