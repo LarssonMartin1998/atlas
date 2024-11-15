@@ -1,9 +1,11 @@
 #pragma once
 
+#include "IStartShutdown.hpp"
+
 namespace atlas::core {
-class IGame {
+class IGame : public IStartShutdown {
   public:
-    virtual ~IGame() = default;
+    ~IGame() override = default;
 
     IGame(const IGame &) = delete;
     auto operator=(const IGame &) -> IGame & = delete;

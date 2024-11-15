@@ -16,14 +16,18 @@ Engine::Engine(std::unique_ptr<IGame> game) : game(std::move(game)) {
     for (auto &[module_type, module] : modules) {
         module->start();
     }
+
+    game->start();
 }
 
 Engine::~Engine() {
-    std::println("Engine destroyed");
+    game->shutdown();
 
     for (auto &[module_type, module] : modules) {
         module->shutdown();
     }
+
+    std::println("Engine destroyed");
 }
 
 auto Engine::run() -> void {
