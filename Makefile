@@ -3,7 +3,8 @@ BUILD_TESTS ?= ON
 BUILD_TYPE ?= Debug
 BUILD_DIR = build
 CMAKE = cmake
-CMAKE_FLAGS = -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_TESTS=$(BUILD_TESTS)
+CMAKE_GENERATOR ?= Ninja
+CMAKE_FLAGS = -G $(CMAKE_GENERATOR) -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_TESTS=$(BUILD_TESTS)
 CONAN = conan
 CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing -s build_type=$(BUILD_TYPE)
 CTEST = ctest
@@ -28,7 +29,8 @@ setup:
 .PHONY: build
 build:
 	@echo "Building the project..."
-	@$(CMAKE) --build $(BUILD_DIR)
+	echo $(nproc)
+	@$(CMAKE) --build $(BUILD_DIR) -- -j $(shell nproc)
 	@echo "Build complete."
 
 # Test target
