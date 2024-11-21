@@ -60,4 +60,5 @@ analyze:
 clean:
 	@echo "Cleaning up..."
 	@rm -rf $(BUILD_DIR) CMakeUserPresets.json .cache
+	@cd generated && fd --max-depth 1 --exclude 'CMakeLists.txt' --exclude 'template' . -X rm -rf --
 	@echo "Cleanup complete."
