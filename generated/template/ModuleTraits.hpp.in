@@ -1,0 +1,19 @@
+// This file is used for or is a result of the code generation.
+// Look in SetupModules.cmake for more information.
+#pragma once
+
+// clang-format off
+// start of generated code
+@INCLUDE_EMODULES@
+// end of generated code
+
+namespace atlas {
+namespace core {
+template <typename T> struct ModuleTraits;
+}
+
+// start of generated code
+@MODULE_TRAITS@
+// end of generated code
+} // namespace atlas
+// clang-format on

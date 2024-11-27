@@ -4,3 +4,5 @@ CMakeUserPresets.json
 .cache/
 compile_commands.json
 grep
+generated/include/
+generated/src/

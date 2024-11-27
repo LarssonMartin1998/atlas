@@ -1,0 +1,13 @@
+// This file is used for or is a result of the code generation.
+// Look in SetupModules.cmake for more information.
+#pragma once
+
+namespace atlas::core {
+enum class EModules {
+    // clang-format off
+    // Start of generated code
+    @EMODULES_ENTRIES@
+    // End of generated code
+    // clang-format on
+};
+}

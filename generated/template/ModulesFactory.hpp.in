@@ -1,0 +1,45 @@
+// This file is used for or is a result of the code generation.
+// Look in SetupModules.cmake for more information.
+
+// clang-format off
+#pragma once
+
+#include <EModules.hpp>
+#include <unordered_map>
+#include <vector>
+
+#include "ModuleTraits.hpp"
+#include "IModule.hpp"
+#include "ITickable.hpp"
+
+// start of generated code
+@INCLUDE_MODULES@
+// end of generated code
+
+namespace atlas::core {
+
+template <typename T>
+concept TypeOfModule = std::is_base_of_v<IModule, T>;
+
+template <TypeOfModule T>
+auto create_module(
+    IEngine &engine,
+    std::unordered_map<EModules, std::unique_ptr<IModule>> &modules,
+    std::vector<ITickable *> &ticking_modules) -> void {
+    std::unique_ptr<IModule> module = std::make_unique<T>(engine);
+    if (auto *tickable = dynamic_cast<ITickable *>(module.get())) {
+        ticking_modules.push_back(tickable);
+    }
+    modules.insert({ModuleTraits<T>::module_enum, std::move(module)});
+}
+
+auto create_modules(
+    IEngine &engine,
+    std::unordered_map<EModules, std::unique_ptr<IModule>> &modules,
+    std::vector<ITickable *> &ticking_modules) -> void {
+    // start of generated code
+    @MODULES_CREATION@
+    // end of generated code
+}
+} // namespace atlas::core
+// clang-format on
