@@ -90,19 +90,21 @@ foreach(module IN LISTS AVAILABLE_ATLAS_MODULES)
   setup_module_code_generation("${module}")
 endforeach()
 
+# The base paths will always be: generated/template/ and
+# ${CMAKE_CURRENT_SOURCE_DIR}/generated/
+set(CONFIGURE_PATHS
+    "EModules.hpp.in:include/atlas/core/EModules.hpp"
+    "ModuleTraits.hpp.in:include/atlas/core/ModuleTraits.hpp"
+    "ModulesFactory.hpp.in:include/atlas/core/ModulesFactory.hpp")
+
 file(MAKE_DIRECTORY generated/atlas/core)
-configure_file(
-  "generated/template/EModules.hpp.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/generated/include/atlas/core/EModules.hpp" @ONLY)
+foreach(paths IN LISTS CONFIGURE_PATHS)
+  string(REPLACE ":" ";" path_pair ${paths})
+  list(GET path_pair 0 template_path)
+  list(GET path_pair 1 output_path)
 
-configure_file(
-  "generated/template/ModuleTraits.hpp.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/generated/include/atlas/core/ModuleTraits.hpp"
-  @ONLY)
-
-configure_file(
-  "generated/template/ModulesFactory.hpp.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/generated/include/atlas/core/ModulesFactory.hpp"
-  @ONLY)
+  configure_file("generated/template/${template_path}"
+                 "${CMAKE_CURRENT_SOURCE_DIR}/generated/${output_path}" @ONLY)
+endforeach()
 
 add_subdirectory("generated")
