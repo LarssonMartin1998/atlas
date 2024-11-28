@@ -69,7 +69,7 @@ template <> struct ModuleTraits<${module_lower}::${module_camel_case}> {
 
   set(INCLUDE_MODULES
       "${INCLUDE_MODULES}
-#include \"${module_camel_case}.hpp\"\n"
+#include \"${module_lower}/${module_camel_case}.hpp\"\n"
       PARENT_SCOPE)
 
   set(MODULES_CREATION

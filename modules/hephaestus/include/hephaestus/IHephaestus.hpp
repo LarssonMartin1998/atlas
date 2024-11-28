@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IModule.hpp"
-#include "ITickable.hpp"
+#include "core/IModule.hpp"
+#include "core/ITickable.hpp"
 
 namespace atlas::hephaestus {
 class IHephaestus : public virtual core::IModule, public core::ITickable {

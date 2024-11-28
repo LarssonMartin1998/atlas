@@ -1,10 +1,10 @@
-#include "Engine.hpp"
+#include "core/Engine.hpp"
 
 #include <cassert>
 #include <print>
 
-#include "IGame.hpp"
-#include "ModulesFactory.hpp"
+#include "core/IGame.hpp"
+#include "core/ModulesFactory.hpp"
 
 namespace atlas::core {
 Engine::Engine(std::unique_ptr<IGame> gameparam) : game(std::move(gameparam)) {

@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "Concepts.hpp"
-#include "ModuleTraits.hpp"
+#include "core/ModuleTraits.hpp"
 
 namespace atlas::core {
 class IGame;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IHephaestus.hpp"
-#include "Module.hpp"
+#include "core/Module.hpp"
+#include "hephaestus/IHephaestus.hpp"
 
 namespace atlas::hephaestus {
 class Hephaestus final : public IHephaestus, public core::Module {

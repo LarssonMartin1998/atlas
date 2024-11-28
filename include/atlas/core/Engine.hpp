@@ -3,8 +3,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include "EModules.hpp"
-#include "IEngine.hpp"
+#include "core/EModules.hpp"
+#include "core/IEngine.hpp"
 
 namespace atlas::core {
 class IGame;

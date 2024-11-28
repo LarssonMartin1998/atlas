@@ -7,8 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Concepts.hpp"
-#include "ModuleTraits.hpp"
+#include "core/Concepts.hpp"
+#include "core/ModuleTraits.hpp"
 
 namespace core::atlas {
 enum class EModules;
