@@ -5,9 +5,12 @@
 
 #include "EModules.hpp"
 #include "IEngine.hpp"
-#include "IGame.hpp"
-#include "IModule.hpp"
-#include "ITickable.hpp"
+
+namespace atlas::core {
+class IGame;
+class IModule;
+class ITickable;
+} // namespace atlas::core
 
 namespace atlas::core {
 class Engine final : public IEngine {

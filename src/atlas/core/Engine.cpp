@@ -3,6 +3,7 @@
 #include <cassert>
 #include <print>
 
+#include "IGame.hpp"
 #include "ModulesFactory.hpp"
 
 namespace atlas::core {

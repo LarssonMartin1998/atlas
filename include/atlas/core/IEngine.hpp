@@ -1,13 +1,17 @@
 #pragma once
 
-#include "ModuleTraits.hpp"
 #include <functional>
+
+#include "Concepts.hpp"
+#include "ModuleTraits.hpp"
 
 namespace atlas::core {
 class IGame;
 class IModule;
 enum class EModules;
+} // namespace atlas::core
 
+namespace atlas::core {
 class IEngine {
   public:
     virtual ~IEngine() = default;
@@ -23,7 +27,7 @@ class IEngine {
     [[nodiscard]] virtual auto
     get_game() const -> std::reference_wrapper<IGame> = 0;
 
-    template <typename T>
+    template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
 
   protected:
@@ -33,11 +37,8 @@ class IEngine {
     get_module_impl(EModules module) const -> IModule * = 0;
 }; // namespace atlas::core
 
-template <typename T>
+template <TypeOfModule T>
 auto IEngine::get_module() const -> std::reference_wrapper<T> {
-    static_assert(std::is_base_of<IModule, T>::value,
-                  "T must derive from IModule");
-
     IModule *module = get_module_impl(ModuleTraits<T>::module_enum);
     return std::ref(*module);
 }

@@ -4,7 +4,9 @@
 
 namespace atlas::core {
 class IEngine;
+}
 
+namespace atlas::core {
 class Module : public virtual IModule {
   public:
     explicit Module(IEngine &engine);

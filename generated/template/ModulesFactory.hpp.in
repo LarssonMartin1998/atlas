@@ -4,23 +4,24 @@
 // clang-format off
 #pragma once
 
-#include <EModules.hpp>
 #include <unordered_map>
 #include <vector>
 
+#include "Concepts.hpp"
 #include "ModuleTraits.hpp"
-#include "IModule.hpp"
-#include "ITickable.hpp"
+
+namespace core::atlas {
+enum class EModules;
+class IEngine;
+class IModule;
+class ITickable;
+}
 
 // start of generated code
 @INCLUDE_MODULES@
 // end of generated code
 
 namespace atlas::core {
-
-template <typename T>
-concept TypeOfModule = std::is_base_of_v<IModule, T>;
-
 template <TypeOfModule T>
 auto create_module(
     IEngine &engine,

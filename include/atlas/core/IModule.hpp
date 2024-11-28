@@ -1,7 +1,10 @@
 #pragma once
 
-#include "IEngine.hpp"
 #include "IStartShutdown.hpp"
+
+namespace atlas::core {
+class IEngine;
+} // namespace atlas::core
 
 namespace atlas::core {
 class IModule : public IStartShutdown {
