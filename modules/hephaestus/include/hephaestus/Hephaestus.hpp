@@ -13,5 +13,7 @@ class Hephaestus final : public IHephaestus, public core::Module {
 
     auto tick() -> void override;
     [[nodiscard]] auto get_tick_rate() const -> unsigned override;
+  protected:
+    [[nodiscard]] auto generate_unique_entity_id() -> Entity override;
 };
 } // namespace atlas::hephaestus
