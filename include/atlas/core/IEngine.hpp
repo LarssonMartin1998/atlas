@@ -39,7 +39,8 @@ class IEngine {
 
 template <TypeOfModule T>
 auto IEngine::get_module() const -> std::reference_wrapper<T> {
-    IModule *module = get_module_impl(ModuleTraits<T>::module_enum);
-    return std::ref(*module);
+    IModule *module_interface = get_module_impl(ModuleTraits<T>::module_enum);
+    T *module_type = dynamic_cast<T *>(module_interface);
+    return std::ref(*module_type);
 }
 } // namespace atlas::core
