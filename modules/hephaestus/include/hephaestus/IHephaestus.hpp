@@ -15,6 +15,8 @@ class IHephaestus : public virtual core::IModule, public core::ITickable {
     IHephaestus(IHephaestus &&) = delete;
     auto operator=(IHephaestus &&) -> IHephaestus & = delete;
 
+    auto create_entity() -> void;
+
   protected:
     IHephaestus() = default;
 
