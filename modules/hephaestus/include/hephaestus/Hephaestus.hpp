@@ -4,16 +4,16 @@
 #include <unordered_map>
 #include <vector>
 
+#include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include "hephaestus/Archetype.hpp"
 #include "hephaestus/ArchetypeBase.hpp"
 #include "hephaestus/Common.hpp"
 #include "hephaestus/Concepts.hpp"
 #include "hephaestus/Hashing.hpp"
-#include "hephaestus/IHephaestus.hpp"
 
 namespace atlas::hephaestus {
-class Hephaestus final : public IHephaestus, public core::Module {
+class Hephaestus final : public core::Module, public core::ITickable {
   public:
     using ArchetypePtr = std::unique_ptr<ArchetypeBase>;
     using ArchetypeMap =
@@ -32,7 +32,7 @@ class Hephaestus final : public IHephaestus, public core::Module {
     auto create_entity() -> void;
 
   protected:
-    [[nodiscard]] auto generate_unique_entity_id() -> Entity override;
+    [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
   private:
     ArchetypeMap archetypes;
