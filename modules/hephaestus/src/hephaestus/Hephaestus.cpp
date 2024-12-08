@@ -1,4 +1,5 @@
 #include "hephaestus/Hephaestus.hpp"
+#include "core/IEngine.hpp"
 
 #include <print>
 
@@ -10,7 +11,12 @@ Hephaestus::Hephaestus(core::IEngine &engine) : core::Module{engine} {
 auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
 auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
 
-auto Hephaestus::tick() -> void { std::println("Hephaestus::tick()"); }
+auto Hephaestus::tick() -> void {
+    const auto &engine_ref = get_engine();
+    for (auto &system : systems) {
+        system->execute(engine_ref);
+    }
+}
 auto Hephaestus::get_tick_rate() const -> unsigned { return 1; }
 
 auto Hephaestus::generate_unique_entity_id() -> Entity {
