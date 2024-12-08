@@ -1,9 +1,11 @@
 #pragma once
 
-#include "IStartShutdown.hpp"
+#include "core/IEngineHandle.hpp"
+#include "core/IStartShutdown.hpp"
+#include <memory>
 
 namespace atlas::core {
-class IGame : public IStartShutdown {
+class IGame : public IStartShutdown, public IEngineHandle {
   public:
     ~IGame() override = default;
 
@@ -17,5 +19,8 @@ class IGame : public IStartShutdown {
 
   protected:
     IGame() = default;
+
+    friend class Engine;
+    virtual auto set_engine(std::weak_ptr<IEngine> engine_ptr) -> void = 0;
 };
 } // namespace atlas::core
