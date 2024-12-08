@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IModule.hpp"
+#include "core/IModule.hpp"
 
 namespace atlas::core {
 class IEngine;
