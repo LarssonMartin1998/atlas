@@ -1,5 +1,6 @@
 #pragma once
 
+#include <span>
 #include <typeindex>
 #include <vector>
 
@@ -17,6 +18,10 @@ class Archetype final : public ArchetypeBase {
     Archetype()
         : component_types(make_component_type_signature<ComponentTypes...>()),
           ArchetypeBase() {}
+
+    [[nodiscard]] auto get_components() -> std::span<EntityComponents> {
+        return entities;
+    }
 
     auto create_entity(Entity entity) -> void {
         entities.emplace_back(entity, ComponentTypes{}...);
