@@ -1,22 +1,15 @@
 #include "core/Engine.hpp"
 
 #include <cassert>
+#include <memory>
 #include <print>
 
 #include "core/IGame.hpp"
 #include "core/ModulesFactory.hpp"
 
 namespace atlas::core {
-Engine::Engine(std::unique_ptr<IGame> gameparam) : game(std::move(gameparam)) {
+Engine::Engine(std::unique_ptr<IGame> game_ptr) : game(std::move(game_ptr)) {
     std::println("Engine created");
-
-    create_modules(*this, modules, ticking_modules);
-
-    for (auto &[module_type, module] : modules) {
-        module->start();
-    }
-
-    game->start();
 }
 
 Engine::~Engine() {
@@ -30,6 +23,17 @@ Engine::~Engine() {
 }
 
 auto Engine::run() -> void {
+    std::println("Engine::run()");
+
+    create_modules(*this, modules, ticking_modules);
+
+    for (auto &[module_type, module] : modules) {
+        module->start();
+    }
+
+    game->set_engine(shared_from_this());
+    game->start();
+
     while (!game->should_quit()) {
         tick_root();
     }

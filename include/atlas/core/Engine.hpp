@@ -13,7 +13,8 @@ class ITickable;
 } // namespace atlas::core
 
 namespace atlas::core {
-class Engine final : public IEngine {
+class Engine final : public IEngine,
+                     public std::enable_shared_from_this<Engine> {
   public:
     explicit Engine(std::unique_ptr<IGame> game);
     ~Engine() override;
