@@ -26,7 +26,6 @@ auto Engine::run() -> void {
     std::println("Engine::run()");
 
     create_modules(*this, modules, ticking_modules);
-
     for (auto &[module_type, module] : modules) {
         module->start();
     }
