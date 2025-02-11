@@ -4,9 +4,7 @@ BUILD_TYPE ?= Debug
 BUILD_DIR = build
 CMAKE = cmake
 CMAKE_GENERATOR ?= Ninja
-CMAKE_FLAGS = -G $(CMAKE_GENERATOR) -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_TESTS=$(BUILD_TESTS)
-CONAN = conan
-CONAN_FLAGS = install . --output-folder=$(BUILD_DIR) --build=missing -s build_type=$(BUILD_TYPE)
+CMAKE_FLAGS = -G $(CMAKE_GENERATOR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) -DBUILD_TESTS=$(BUILD_TESTS)
 CTEST = ctest
 
 # Default target
@@ -29,7 +27,6 @@ setup:
 	@echo "Setting up the build environment..."
 	@ln -sf $(BUILD_DIR)/compile_commands.json compile_commands.json
 	@mkdir -p $(BUILD_DIR)
-	@$(CONAN) $(CONAN_FLAGS)
 	@make generate
 	@echo "Environment setup complete."
 
@@ -38,7 +35,7 @@ setup:
 build:
 	@echo "Building the project..."
 	echo $(nproc)
-	@$(CMAKE) --build $(BUILD_DIR) -- -j $(shell nproc)
+	@$(CMAKE) --build $(BUILD_DIR) --parallel $(shell nproc)
 	@echo "Build complete."
 
 # Test target

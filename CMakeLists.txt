@@ -37,3 +37,9 @@ if(BUILDING_ONLY_ATLAS AND BUILD_TESTS)
 else()
   message(STATUS "Skipping tests.")
 endif()
+
+# This is false by default, it doesnt make any sense to install this lib on our
+# system. This is only used by nix when using the flake.
+if(ENABLE_INSTALL)
+  install(TARGETS atlas DESTINATION bin)
+endif()
