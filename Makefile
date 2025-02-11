@@ -35,7 +35,7 @@ setup:
 build:
 	@echo "Building the project..."
 	echo $(nproc)
-	@$(CMAKE) --build $(BUILD_DIR) -- -j $(shell nproc)
+	@$(CMAKE) --build $(BUILD_DIR) --parallel $(shell nproc)
 	@echo "Build complete."
 
 # Test target
