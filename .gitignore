@@ -6,4 +6,4 @@ compile_commands.json
 grep
 generated/include/
 generated/src/
-result/
+result
