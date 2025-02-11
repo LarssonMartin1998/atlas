@@ -1,4 +1,4 @@
-# CMake and Conan
+# CMake
 build/
 CMakeUserPresets.json
 .cache/
