@@ -2,7 +2,7 @@ find_package(GTest CONFIG REQUIRED)
 
 add_executable(atlas_core)
 
-target_link_libraries(atlas_core PRIVATE ${PROJECT_NAME} GTest::gtest_main)
+target_link_libraries(atlas_core PRIVATE atlas GTest::gtest_main)
 target_sources(atlas_core PRIVATE TestMain.cpp TestEngine.cpp TestModule.cpp)
 
 include(GoogleTest)
