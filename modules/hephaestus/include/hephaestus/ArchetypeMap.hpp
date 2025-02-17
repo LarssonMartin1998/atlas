@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hephaestus/Hashing.hpp"
+#include <memory>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
