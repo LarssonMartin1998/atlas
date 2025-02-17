@@ -3,7 +3,7 @@
 #include <cassert>
 
 namespace atlas::core {
-auto Game::get_engine() const -> IEngine & {
+auto Game::get_engine() const -> IEngine& {
     const auto shared = engine.lock();
     assert(shared);
     return *shared;

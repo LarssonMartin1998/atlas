@@ -4,7 +4,7 @@
 #include <print>
 
 namespace atlas::hephaestus {
-Hephaestus::Hephaestus(core::IEngine &engine) : core::Module{engine} {
+Hephaestus::Hephaestus(core::IEngine& engine) : core::Module{engine} {
     std::println("Hephaestus Constructor");
 }
 
@@ -12,8 +12,8 @@ auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
 auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
 
 auto Hephaestus::tick() -> void {
-    const auto &engine_ref = get_engine();
-    for (auto &system : systems) {
+    const auto& engine_ref = get_engine();
+    for (auto& system : systems) {
         system->execute(engine_ref);
     }
 }

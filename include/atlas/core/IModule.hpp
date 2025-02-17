@@ -12,11 +12,11 @@ class IModule : public IStartShutdown, public IEngineHandle {
   public:
     ~IModule() override = default;
 
-    IModule(const IModule &) = delete;
-    auto operator=(const IModule &) -> IModule & = delete;
+    IModule(const IModule&) = delete;
+    auto operator=(const IModule&) -> IModule& = delete;
 
-    IModule(IModule &&) = delete;
-    auto operator=(IModule &&) -> IModule & = delete;
+    IModule(IModule&&) = delete;
+    auto operator=(IModule&&) -> IModule& = delete;
 
   protected:
     IModule() = default;

@@ -19,26 +19,26 @@ class Engine final : public IEngine,
     explicit Engine(std::unique_ptr<IGame> game);
     ~Engine() override;
 
-    Engine(const Engine &) = delete;
-    auto operator=(const Engine &) -> Engine & = delete;
+    Engine(const Engine&) = delete;
+    auto operator=(const Engine&) -> Engine& = delete;
 
-    Engine(Engine &&) = delete;
-    auto operator=(Engine &&) -> Engine & = delete;
+    Engine(Engine&&) = delete;
+    auto operator=(Engine&&) -> Engine& = delete;
 
     auto run() -> void override;
 
-    [[nodiscard]] auto
-    get_game() const -> std::reference_wrapper<IGame> override;
+    [[nodiscard]] auto get_game() const
+        -> std::reference_wrapper<IGame> override;
 
   protected:
-    [[nodiscard]] auto
-    get_module_impl(EModules module) const -> IModule * override;
+    [[nodiscard]] auto get_module_impl(EModules module) const
+        -> IModule* override;
 
   private:
     auto tick_root() -> void;
 
     std::unordered_map<EModules, std::unique_ptr<IModule>> modules;
-    std::vector<ITickable *> ticking_modules;
+    std::vector<ITickable*> ticking_modules;
     std::unique_ptr<IGame> game;
 };
 } // namespace atlas::core

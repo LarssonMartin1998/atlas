@@ -21,7 +21,7 @@ class Hephaestus;
 namespace atlas::hephaestus {
 class Hephaestus final : public core::Module, public core::ITickable {
   public:
-    explicit Hephaestus(core::IEngine &engine);
+    explicit Hephaestus(core::IEngine& engine);
 
     auto start() -> void override;
     auto shutdown() -> void override;
@@ -29,7 +29,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     auto tick() -> void override;
     [[nodiscard]] auto get_tick_rate() const -> unsigned override;
 
-    template <typename Func> auto create_system(Func &&func) -> void;
+    template <typename Func> auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity() -> void;
@@ -64,7 +64,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     template <typename ClassType, typename ReturnType, typename EngineParam,
               typename QueryParam>
 
-    struct FunctionTraits<ReturnType (ClassType:: *)(EngineParam, QueryParam)
+    struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, QueryParam)
                               const> {
         using EngineType = std::decay_t<EngineParam>;
         using QueryType = std::decay_t<QueryParam>;
@@ -80,7 +80,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     };
 };
 
-template <typename Func> auto Hephaestus::create_system(Func &&func) -> void {
+template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
     using Traits = FunctionTraits<std::decay_t<Func>>;
     using QueryType =
         typename Traits::QueryType; // e.g. Query<Transform, Velocity>
@@ -112,7 +112,7 @@ auto Hephaestus::create_entity() -> void {
     const auto entity_id = generate_unique_entity_id();
     const auto signature = make_component_type_signature<ComponentTypes...>();
 
-    auto &archetype = [this, signature]() -> ArchetypePtr & {
+    auto& archetype = [this, signature]() -> ArchetypePtr& {
         if (!archetypes.contains(signature)) {
             archetypes.emplace(signature, std::make_unique<Archetype>());
         }

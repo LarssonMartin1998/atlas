@@ -6,7 +6,7 @@
 namespace atlas::core {
 class Game : virtual public IGame {
   public:
-    [[nodiscard]] auto get_engine() const -> IEngine & override;
+    [[nodiscard]] auto get_engine() const -> IEngine& override;
 
   protected:
     auto set_engine(std::weak_ptr<IEngine> engine_ptr) -> void override;

@@ -23,11 +23,11 @@ class Archetype final {
     Archetype() = default;
     virtual ~Archetype() = default;
 
-    Archetype(const Archetype &) = delete;
-    auto operator=(const Archetype &) -> Archetype & = delete;
+    Archetype(const Archetype&) = delete;
+    auto operator=(const Archetype&) -> Archetype& = delete;
 
-    Archetype(Archetype &&) = delete;
-    auto operator=(Archetype &&) -> Archetype & = delete;
+    Archetype(Archetype&&) = delete;
+    auto operator=(Archetype&&) -> Archetype& = delete;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(Entity entity) -> void;
@@ -37,7 +37,7 @@ class Archetype final {
 
   private:
     template <TypeOfComponent ComponentType>
-    [[nodiscard]] auto get_components() const -> std::vector<ComponentType> &;
+    [[nodiscard]] auto get_components() const -> std::vector<ComponentType>&;
 
     template <TypeOfComponent ComponentType>
     auto add_to_component_storage() -> void;
@@ -56,20 +56,20 @@ auto Archetype::create_entity(Entity entity) -> void {
 template <AllTypeOfComponent... ComponentTypes>
 auto Archetype::get_entity_tuples() const -> decltype(auto) {
     return std::views::iota(std::size_t{0}, entities.size()) |
-           std::views::transform([this](const auto &index) {
-               return std::tuple<ComponentTypes &...>{
+           std::views::transform([this](const auto& index) {
+               return std::tuple<ComponentTypes&...>{
                    get_components<ComponentTypes>()[index]...};
            });
 }
 
 template <TypeOfComponent ComponentType>
-[[nodiscard]] auto
-Archetype::get_components() const -> std::vector<ComponentType> & {
+[[nodiscard]] auto Archetype::get_components() const
+    -> std::vector<ComponentType>& {
     const auto component_type = std::type_index(typeid(ComponentType));
     assert(component_storages.contains(component_type) &&
            "Component type not found in archetype");
 
-    return static_cast<ComponentStorage<ComponentType> *>(
+    return static_cast<ComponentStorage<ComponentType>*>(
                component_storages.at(component_type).get())
         ->components;
 }
@@ -82,7 +82,7 @@ auto Archetype::add_to_component_storage() -> void {
             {type_index, std::make_unique<ComponentStorage<ComponentType>>()});
     }
 
-    static_cast<ComponentStorage<ComponentType> &>(
+    static_cast<ComponentStorage<ComponentType>&>(
         *component_storages[type_index].get())
         .components.emplace_back(ComponentType{});
 }

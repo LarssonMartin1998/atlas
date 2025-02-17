@@ -15,7 +15,7 @@ Engine::Engine(std::unique_ptr<IGame> game_ptr) : game(std::move(game_ptr)) {
 Engine::~Engine() {
     game->shutdown();
 
-    for (auto &[module_type, module] : modules) {
+    for (auto& [module_type, module] : modules) {
         module->shutdown();
     }
 
@@ -26,7 +26,7 @@ auto Engine::run() -> void {
     std::println("Engine::run()");
 
     create_modules(*this, modules, ticking_modules);
-    for (auto &[module_type, module] : modules) {
+    for (auto& [module_type, module] : modules) {
         module->start();
     }
 
@@ -43,14 +43,14 @@ auto Engine::get_game() const -> std::reference_wrapper<IGame> {
     return std::ref(*game);
 }
 
-auto Engine::get_module_impl(EModules module) const -> IModule * {
+auto Engine::get_module_impl(EModules module) const -> IModule* {
     assert(modules.contains(module));
-    const auto &module_ptr = modules.at(module);
+    const auto& module_ptr = modules.at(module);
     return module_ptr.get();
 }
 
 auto Engine::tick_root() -> void {
-    for (auto *module : ticking_modules) {
+    for (auto* module : ticking_modules) {
         module->tick();
     }
 }

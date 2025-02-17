@@ -9,15 +9,15 @@ class IEngine;
 namespace atlas::core {
 class Module : public virtual IModule {
   public:
-    explicit Module(IEngine &engine);
+    explicit Module(IEngine& engine);
 
   protected:
-    [[nodiscard]] auto get_engine() const -> IEngine & override;
+    [[nodiscard]] auto get_engine() const -> IEngine& override;
 
     auto start() -> void override;
     auto shutdown() -> void override;
 
   private:
-    IEngine &engine;
+    IEngine& engine;
 };
 } // namespace atlas::core
