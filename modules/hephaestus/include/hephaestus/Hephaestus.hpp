@@ -6,7 +6,7 @@
 namespace atlas::hephaestus {
 class Hephaestus final : public IHephaestus, public core::Module {
   public:
-    explicit Hephaestus(core::IEngine &engine);
+    explicit Hephaestus(core::IEngine& engine);
 
     auto start() -> void override;
     auto shutdown() -> void override;

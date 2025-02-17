@@ -11,13 +11,13 @@ class IModule : public IStartShutdown {
   public:
     ~IModule() override = default;
 
-    IModule(const IModule &) = delete;
-    auto operator=(const IModule &) -> IModule & = delete;
+    IModule(const IModule&) = delete;
+    auto operator=(const IModule&) -> IModule& = delete;
 
-    IModule(IModule &&) = delete;
-    auto operator=(IModule &&) -> IModule & = delete;
+    IModule(IModule&&) = delete;
+    auto operator=(IModule&&) -> IModule& = delete;
 
-    [[nodiscard]] virtual auto get_engine() const -> IEngine & = 0;
+    [[nodiscard]] virtual auto get_engine() const -> IEngine& = 0;
 
   protected:
     IModule() = default;

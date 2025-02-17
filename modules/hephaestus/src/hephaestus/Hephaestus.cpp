@@ -3,7 +3,7 @@
 #include <print>
 
 namespace atlas::hephaestus {
-Hephaestus::Hephaestus(core::IEngine &engine) : core::Module{engine} {
+Hephaestus::Hephaestus(core::IEngine& engine) : core::Module{engine} {
     std::println("Hephaestus Constructor");
 }
 
