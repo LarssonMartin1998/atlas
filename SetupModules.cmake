@@ -5,9 +5,6 @@ endif()
 
 set(AVAILABLE_ATLAS_MODULES Hephaestus)
 
-set(EMODULES_ENTRIES "")
-set(INCLUDE_EMODULES "")
-set(MODULE_TRAITS "")
 set(INCLUDE_MODULES "")
 set(MODULES_CREATION "")
 
@@ -47,26 +44,6 @@ function(setup_module_code_generation module)
   string(TOLOWER "${module}" module_lower)
   to_camel_case("${module}" module_camel_case)
 
-  set(EMODULES_ENTRIES
-      "${EMODULES_ENTRIES} ${module},\n"
-      PARENT_SCOPE)
-  set(INCLUDE_EMODULES
-      "#include \"EModules.hpp\""
-      PARENT_SCOPE)
-
-  set(MODULE_TRAITS
-      "${MODULE_TRAITS}
-namespace ${module_lower} {
-class ${module_camel_case};
-}
-
-namespace core {
-template <> struct ModuleTraits<${module_lower}::${module_camel_case}> {
-    static constexpr EModules module_enum = EModules::${module_camel_case};
-};
-}"
-      PARENT_SCOPE)
-
   set(INCLUDE_MODULES
       "${INCLUDE_MODULES}
 #include \"${module_lower}/${module_camel_case}.hpp\"\n"
@@ -93,8 +70,6 @@ endforeach()
 # The base paths will always be: generated/template/ and
 # ${CMAKE_CURRENT_SOURCE_DIR}/generated/
 set(CONFIGURE_PATHS
-    "EModules.hpp.in:include/atlas/core/EModules.hpp"
-    "ModuleTraits.hpp.in:include/atlas/core/ModuleTraits.hpp"
     "ModulesFactory.hpp.in:include/atlas/core/ModulesFactory.hpp")
 
 file(MAKE_DIRECTORY generated/atlas/core)

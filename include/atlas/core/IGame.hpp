@@ -2,7 +2,6 @@
 
 #include "core/IEngineHandle.hpp"
 #include "core/IStartShutdown.hpp"
-#include <memory>
 
 namespace atlas::core {
 class IGame : public IStartShutdown, public IEngineHandle {
@@ -15,12 +14,11 @@ class IGame : public IStartShutdown, public IEngineHandle {
     IGame(IGame&&) = delete;
     auto operator=(IGame&&) -> IGame& = delete;
 
+    virtual auto set_engine(IEngine& engine_ref) -> void = 0;
+
     [[nodiscard]] virtual auto should_quit() const -> bool = 0;
 
   protected:
     IGame() = default;
-
-    friend class Engine;
-    virtual auto set_engine(std::weak_ptr<IEngine> engine_ptr) -> void = 0;
 };
 } // namespace atlas::core

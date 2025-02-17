@@ -8,10 +8,9 @@ class Game : virtual public IGame {
   public:
     [[nodiscard]] auto get_engine() const -> IEngine& override;
 
-  protected:
-    auto set_engine(std::weak_ptr<IEngine> engine_ptr) -> void override;
+    auto set_engine(IEngine& engine_ref) -> void override;
 
   private:
-    std::weak_ptr<IEngine> engine;
+    IEngine* engine;
 };
 } // namespace atlas::core

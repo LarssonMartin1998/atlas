@@ -4,12 +4,9 @@
 
 namespace atlas::core {
 auto Game::get_engine() const -> IEngine& {
-    const auto shared = engine.lock();
-    assert(shared);
-    return *shared;
+    assert(engine && "Engine is not set, call set_engine() first.");
+    return *engine;
 }
 
-auto Game::set_engine(std::weak_ptr<IEngine> engine_ptr) -> void {
-    engine = engine_ptr;
-}
+auto Game::set_engine(IEngine& engine_ref) -> void { engine = &engine_ref; }
 } // namespace atlas::core

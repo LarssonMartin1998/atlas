@@ -1,14 +1,13 @@
 #pragma once
 
 #include <functional>
+#include <typeindex>
 
 #include "Concepts.hpp"
-#include "core/ModuleTraits.hpp"
 
 namespace atlas::core {
 class IGame;
 class IModule;
-enum class EModules;
 } // namespace atlas::core
 
 namespace atlas::core {
@@ -24,8 +23,7 @@ class IEngine {
 
     virtual auto run() -> void = 0;
 
-    [[nodiscard]] virtual auto get_game() const
-        -> std::reference_wrapper<IGame> = 0;
+    [[nodiscard]] virtual auto get_game() -> IGame& = 0;
 
     template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
@@ -33,13 +31,13 @@ class IEngine {
   protected:
     IEngine() = default;
 
-    [[nodiscard]] virtual auto get_module_impl(EModules module) const
+    [[nodiscard]] virtual auto get_module_impl(std::type_index module) const
         -> IModule* = 0;
 }; // namespace atlas::core
 
 template <TypeOfModule T>
 auto IEngine::get_module() const -> std::reference_wrapper<T> {
-    IModule* module_interface = get_module_impl(ModuleTraits<T>::module_enum);
+    IModule* module_interface = get_module_impl(std::type_index(typeid(T)));
     T* module_type = dynamic_cast<T*>(module_interface);
     return std::ref(*module_type);
 }

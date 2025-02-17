@@ -1,2 +1,1 @@
-target_sources(atlas PRIVATE atlas/core/Engine.cpp atlas/core/Game.cpp
-                             atlas/core/Module.cpp)
+target_sources(atlas PRIVATE atlas/core/Game.cpp atlas/core/Module.cpp)
