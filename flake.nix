@@ -35,5 +35,8 @@
           ctest --output-on-failure
         '';
       };
+
+      # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
+      src = ./.;
     };
 }

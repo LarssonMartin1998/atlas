@@ -1,9 +1,10 @@
 #pragma once
 
-#include "IStartShutdown.hpp"
+#include "core/IEngineHandle.hpp"
+#include "core/IStartShutdown.hpp"
 
 namespace atlas::core {
-class IGame : public IStartShutdown {
+class IGame : public IStartShutdown, public IEngineHandle {
   public:
     ~IGame() override = default;
 
@@ -12,6 +13,8 @@ class IGame : public IStartShutdown {
 
     IGame(IGame&&) = delete;
     auto operator=(IGame&&) -> IGame& = delete;
+
+    virtual auto set_engine(IEngine& engine_ref) -> void = 0;
 
     [[nodiscard]] virtual auto should_quit() const -> bool = 0;
 

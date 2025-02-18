@@ -1,13 +1,14 @@
 #pragma once
 
-#include "IStartShutdown.hpp"
+#include "core/IEngineHandle.hpp"
+#include "core/IStartShutdown.hpp"
 
 namespace atlas::core {
 class IEngine;
 } // namespace atlas::core
 
 namespace atlas::core {
-class IModule : public IStartShutdown {
+class IModule : public IStartShutdown, public IEngineHandle {
   public:
     ~IModule() override = default;
 
@@ -16,8 +17,6 @@ class IModule : public IStartShutdown {
 
     IModule(IModule&&) = delete;
     auto operator=(IModule&&) -> IModule& = delete;
-
-    [[nodiscard]] virtual auto get_engine() const -> IEngine& = 0;
 
   protected:
     IModule() = default;

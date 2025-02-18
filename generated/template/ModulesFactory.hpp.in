@@ -6,12 +6,12 @@
 
 #include <unordered_map>
 #include <vector>
+#include <typeindex>
 
 #include "core/Concepts.hpp"
 #include "core/ModuleTraits.hpp"
 
 namespace core::atlas {
-enum class EModules;
 class IEngine;
 class IModule;
 class ITickable;
@@ -25,18 +25,18 @@ namespace atlas::core {
 template <TypeOfModule T>
 auto create_module(
     IEngine &engine,
-    std::unordered_map<EModules, std::unique_ptr<IModule>> &modules,
+    std::unordered_map<std::type_index, std::unique_ptr<IModule>> &modules,
     std::vector<ITickable *> &ticking_modules) -> void {
     std::unique_ptr<IModule> module = std::make_unique<T>(engine);
     if (auto *tickable = dynamic_cast<ITickable *>(module.get())) {
         ticking_modules.push_back(tickable);
     }
-    modules.insert({ModuleTraits<T>::module_enum, std::move(module)});
+    modules.insert({std::type_index(typeid(T)), std::move(module)});
 }
 
 auto create_modules(
     IEngine &engine,
-    std::unordered_map<EModules, std::unique_ptr<IModule>> &modules,
+    std::unordered_map<std::type_index, std::unique_ptr<IModule>> &modules,
     std::vector<ITickable *> &ticking_modules) -> void {
     // start of generated code
     @MODULES_CREATION@

@@ -40,6 +40,6 @@ endif()
 
 # This is false by default, it doesnt make any sense to install this lib on our
 # system. This is only used by nix when using the flake.
-if(ENABLE_INSTALL)
-  install(TARGETS atlas DESTINATION bin)
+if(ENABLE_INSTALL AND BUILDING_ONLY_ATLAS)
+  install(TARGETS atlas DESTINATION lib)
 endif()
