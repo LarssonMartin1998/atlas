@@ -11,9 +11,9 @@ class Module : public virtual IModule {
   public:
     explicit Module(IEngine& engine);
 
-  protected:
     [[nodiscard]] auto get_engine() const -> IEngine& override;
 
+  protected:
     auto start() -> void override;
     auto shutdown() -> void override;
 
