@@ -9,7 +9,6 @@
 #include <typeindex>
 
 #include "core/Concepts.hpp"
-#include "core/ModuleTraits.hpp"
 
 namespace core::atlas {
 class IEngine;
