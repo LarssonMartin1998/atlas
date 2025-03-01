@@ -30,7 +30,7 @@ class Archetype final {
     auto operator=(Archetype&&) -> Archetype& = delete;
 
     template <AllTypeOfComponent... ComponentTypes>
-    auto create_entity(Entity entity) -> void;
+    auto create_entity(Entity entity, ComponentTypes&&... components) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto get_entity_tuples() const -> decltype(auto);
@@ -40,7 +40,8 @@ class Archetype final {
     [[nodiscard]] auto get_components() const -> std::vector<ComponentType>&;
 
     template <TypeOfComponent ComponentType>
-    auto add_to_component_storage() -> void;
+    auto add_to_component_storage(ComponentType&& component) -> void
+        requires RValueArg<ComponentType>;
 
     std::vector<Entity> entities;
     std::unordered_map<std::type_index, std::unique_ptr<IComponentStorage>>
@@ -48,9 +49,12 @@ class Archetype final {
 };
 
 template <AllTypeOfComponent... ComponentTypes>
-auto Archetype::create_entity(Entity entity) -> void {
+auto Archetype::create_entity(Entity entity, ComponentTypes&&... components)
+    -> void {
     entities.emplace_back(entity);
-    (add_to_component_storage<ComponentTypes>(), ...);
+    (add_to_component_storage<ComponentTypes>(
+         std::forward<ComponentTypes>(components)),
+     ...);
 }
 
 template <AllTypeOfComponent... ComponentTypes>
@@ -75,7 +79,9 @@ template <TypeOfComponent ComponentType>
 }
 
 template <TypeOfComponent ComponentType>
-auto Archetype::add_to_component_storage() -> void {
+auto Archetype::add_to_component_storage(ComponentType&& component) -> void
+    requires RValueArg<ComponentType>
+{
     const auto type_index = std::type_index(typeid(ComponentType));
     if (!component_storages.contains(type_index)) {
         component_storages.insert(
@@ -84,6 +90,6 @@ auto Archetype::add_to_component_storage() -> void {
 
     static_cast<ComponentStorage<ComponentType>&>(
         *component_storages[type_index].get())
-        .components.emplace_back(ComponentType{});
+        .components.emplace_back(std::forward<ComponentType>(component));
 }
 } // namespace atlas::hephaestus

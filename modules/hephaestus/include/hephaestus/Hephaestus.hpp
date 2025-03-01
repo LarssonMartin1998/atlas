@@ -32,7 +32,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     template <typename Func> auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
-    auto create_entity() -> void;
+    auto create_entity(ComponentTypes&&... components) -> void;
 
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
@@ -108,7 +108,7 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto Hephaestus::create_entity() -> void {
+auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
     const auto entity_id = generate_unique_entity_id();
     const auto signature = make_component_type_signature<ComponentTypes...>();
 
@@ -120,6 +120,7 @@ auto Hephaestus::create_entity() -> void {
         return archetypes[signature];
     }();
 
-    archetype.get()->template create_entity<ComponentTypes...>(entity_id);
+    archetype.get()->template create_entity<ComponentTypes...>(
+        entity_id, std::forward<ComponentTypes>(components)...);
 }
 } // namespace atlas::hephaestus

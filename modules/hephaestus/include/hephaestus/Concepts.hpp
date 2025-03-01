@@ -16,4 +16,7 @@ concept AllTypeOfComponent =
 
 template <typename T>
 concept TypeOfComponent = NotConst<T> && std::is_base_of_v<IComponent, T>;
+
+template <typename T>
+concept RValueArg = !std::is_lvalue_reference_v<T>;
 } // namespace atlas::hephaestus
