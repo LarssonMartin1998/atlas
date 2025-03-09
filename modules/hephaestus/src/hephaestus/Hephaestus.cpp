@@ -12,10 +12,17 @@ auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
 auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
 
 auto Hephaestus::tick() -> void {
-    const auto& engine_ref = get_engine();
-    for (auto& system : systems) {
-        system->execute(engine_ref);
+    for (auto& creation : creation_queue) {
+        creation();
     }
+    creation_queue.clear();
+
+    const auto& engine = get_engine();
+    for (auto& system : systems) {
+        system->execute(engine);
+    }
+    //
+    // Destroy queued entities
 }
 auto Hephaestus::get_tick_rate() const -> unsigned { return 1; }
 

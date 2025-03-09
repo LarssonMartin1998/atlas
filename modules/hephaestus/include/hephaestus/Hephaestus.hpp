@@ -41,14 +41,13 @@ class Hephaestus final : public core::Module, public core::ITickable {
     std::vector<std::unique_ptr<SystemBase>> systems;
     ArchetypeMap archetypes;
 
+    std::vector<std::function<void()>> creation_queue;
+    std::vector<std::function<void()>> destroy_queue;
+
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
     // pass the lambda which will be used as the system function, the rest is
     // deduced and handled.
-    //
-    // TODO: This can later be used to improve the API for creating entities,
-    // letting the user only pass the actual created components with or without
-    // values, and let this deduce it and create archetypes from it.
 
     // A utility to pull out parameter types from a a callable.
     template <typename T>
@@ -107,20 +106,34 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
         CompTuple{});
 }
 
+// No entities are created on the fly. We enqueue all of it into a collection
+// which is iterated and constructs all entities in the begining of the next
+// frame.
 template <AllTypeOfComponent... ComponentTypes>
 auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
-    const auto entity_id = generate_unique_entity_id();
-    const auto signature = make_component_type_signature<ComponentTypes...>();
+    auto components_tuple =
+        std::make_tuple(std::forward<ComponentTypes>(components)...);
 
-    auto& archetype = [this, signature]() -> ArchetypePtr& {
-        if (!archetypes.contains(signature)) {
-            archetypes.emplace(signature, std::make_unique<Archetype>());
-        }
+    creation_queue.emplace_back([this,
+                                 data = std::move(components_tuple)]() mutable {
+        const auto entity_id = generate_unique_entity_id();
+        const auto signature =
+            make_component_type_signature<ComponentTypes...>();
 
-        return archetypes[signature];
-    }();
+        auto& archetype = [this, &signature]() -> ArchetypePtr& {
+            if (!archetypes.contains(signature)) {
+                archetypes.emplace(signature, std::make_unique<Archetype>());
+            }
 
-    archetype.get()->template create_entity<ComponentTypes...>(
-        entity_id, std::forward<ComponentTypes>(components)...);
+            return archetypes[signature];
+        }();
+
+        std::apply(
+            [&](auto&&... unpacked) {
+                archetype->template create_entity<ComponentTypes...>(
+                    entity_id, std::move(unpacked)...);
+            },
+            data);
+    });
 }
 } // namespace atlas::hephaestus
