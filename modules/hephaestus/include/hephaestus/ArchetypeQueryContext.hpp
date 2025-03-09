@@ -9,7 +9,7 @@ struct ArchetypeQueryContext final {
     explicit ArchetypeQueryContext(
         const ArchetypeMap& archetypes,
         std::unordered_set<std::type_index>&& signature)
-        : archetypes{archetypes}, signature{signature} {
+        : archetypes{archetypes}, signature{std::move(signature)} {
 
         std::println("QueryContext Constructor");
     }
