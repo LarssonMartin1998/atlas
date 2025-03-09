@@ -10,6 +10,7 @@
 #include "core/IModule.hpp"
 #include "core/ITickable.hpp"
 #include "core/ModulesFactory.hpp"
+#include "core/time/EngineClock.hpp"
 
 namespace atlas::core {
 template <TypeOfGame G> class Engine final : public IEngine {
@@ -27,6 +28,8 @@ template <TypeOfGame G> class Engine final : public IEngine {
 
     [[nodiscard]] auto get_game() -> IGame& override;
 
+    [[nodiscard]] auto get_clock() const -> const IEngineClock& override;
+
   protected:
     [[nodiscard]] auto get_module_impl(std::type_index module) const
         -> IModule* override;
@@ -34,9 +37,12 @@ template <TypeOfGame G> class Engine final : public IEngine {
   private:
     auto tick_root() -> void;
 
+    G game;
+
     std::unordered_map<std::type_index, std::unique_ptr<IModule>> modules;
     std::vector<ITickable*> ticking_modules;
-    G game;
+
+    EngineClock clock;
 };
 
 template <TypeOfGame G> Engine<G>::~Engine() {
@@ -62,6 +68,8 @@ template <TypeOfGame G> auto Engine<G>::run() -> void {
 
     while (!game.should_quit()) {
         tick_root();
+
+        clock.update_delta_time();
     }
 }
 
@@ -72,6 +80,11 @@ auto Engine<G>::get_module_impl(std::type_index module) const -> IModule* {
     assert(modules.contains(module));
     const auto& module_ptr = modules.at(module);
     return module_ptr.get();
+}
+
+template <TypeOfGame G>
+auto Engine<G>::get_clock() const -> const IEngineClock& {
+    return clock;
 }
 
 template <TypeOfGame G> auto Engine<G>::tick_root() -> void {
