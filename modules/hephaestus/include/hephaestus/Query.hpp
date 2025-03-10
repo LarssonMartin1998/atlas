@@ -11,7 +11,7 @@ namespace atlas::hephaestus {
 template <AllTypeOfComponent... ComponentTypes> class Query final {
   public:
     inline explicit Query(const ArchetypeMap& archetypes,
-                          std::vector<std::type_index>&& component_types);
+                          std::vector<std::type_index> component_types);
 
     Query(const Query&) = delete;
     auto operator=(const Query&) -> Query& = delete;
@@ -32,7 +32,7 @@ template <AllTypeOfComponent... ComponentTypes> class Query final {
 template <AllTypeOfComponent... ComponentTypes>
 inline Query<ComponentTypes...>::Query(
     const ArchetypeMap& archetypes,
-    std::vector<std::type_index>&& component_types)
+    std::vector<std::type_index> component_types)
     : context{archetypes, {component_types.begin(), component_types.end()}} {
     std::println("Query Constructor");
 }
