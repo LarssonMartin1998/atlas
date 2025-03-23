@@ -5,6 +5,9 @@
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine) : core::Module{engine} {
+    constexpr auto queue_buffert = 100;
+    creation_queue.reserve(queue_buffert);
+    destroy_queue.reserve(queue_buffert);
     std::println("Hephaestus Constructor");
 }
 
