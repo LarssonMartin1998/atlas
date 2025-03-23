@@ -2,8 +2,8 @@
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
-#include "hephaestus/Query.hpp"
 #include "hephaestus/SystemBase.hpp"
+#include "hephaestus/query/Query.hpp"
 #include <functional>
 #include <print>
 #include <utility>
