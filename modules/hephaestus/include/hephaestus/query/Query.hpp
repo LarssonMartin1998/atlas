@@ -37,16 +37,47 @@ template <AllTypeOfComponent... ComponentTypes> class Query final {
     inline auto get() const -> QueryResult<PipelineType>&;
 
   private:
+    [[nodiscard]] inline auto
+    is_cache_dirty(const std::uint64_t& cumsum_version) const -> bool;
+    [[nodiscard]] inline auto calc_components_cumsum_version() const
+        -> std::uint64_t;
+
+    mutable std::uint64_t last_cache_cumsum_version{};
     mutable std::optional<QueryResult<PipelineType>> cache;
+
     const ArchetypeQueryContext context;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
+[[nodiscard]] inline auto Query<ComponentTypes...>::is_cache_dirty(
+    const std::uint64_t& cumsum_version) const -> bool {
+
+    if (!cache.has_value()) {
+        return true;
+    }
+
+    if (cumsum_version != last_cache_cumsum_version) {
+        return true;
+    }
+
+    return false;
+}
+
+template <AllTypeOfComponent... ComponentTypes>
+[[nodiscard]] inline auto
+Query<ComponentTypes...>::calc_components_cumsum_version() const
+    -> std::uint64_t {
+    return (0ULL + ... + Component<ComponentTypes>::get_version());
+}
+
+template <AllTypeOfComponent... ComponentTypes>
 [[nodiscard]] inline auto Query<ComponentTypes...>::get() const
     -> QueryResult<PipelineType>& {
-    if (!cache.has_value()) {
+    const auto cumsum_version = calc_components_cumsum_version();
+    if (is_cache_dirty(cumsum_version)) {
         cache.emplace(build_pipeline<ComponentTypes...>(context.archetypes,
                                                         context.signature));
+        last_cache_cumsum_version = cumsum_version;
     }
 
     return *cache;

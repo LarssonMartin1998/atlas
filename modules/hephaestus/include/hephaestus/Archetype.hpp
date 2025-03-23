@@ -91,5 +91,7 @@ auto Archetype::add_to_component_storage(ComponentType&& component) -> void
     static_cast<ComponentStorage<ComponentType>&>(
         *component_storages[type_index].get())
         .components.emplace_back(std::forward<ComponentType>(component));
+
+    ComponentType::version_counter++;
 }
 } // namespace atlas::hephaestus
