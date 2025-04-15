@@ -9,6 +9,7 @@ namespace atlas::core {
 class IGame;
 class IModule;
 class IEngineClock;
+class IThreadPool;
 } // namespace atlas::core
 
 namespace atlas::core {
@@ -27,6 +28,7 @@ class IEngine {
     [[nodiscard]] virtual auto get_game() -> IGame& = 0;
 
     [[nodiscard]] virtual auto get_clock() const -> const IEngineClock& = 0;
+    [[nodiscard]] virtual auto get_thread_pool() -> IThreadPool& = 0;
 
     template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;

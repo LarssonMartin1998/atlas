@@ -12,6 +12,7 @@
 #include "core/IModule.hpp"
 #include "core/ITickable.hpp"
 #include "core/ModulesFactory.hpp"
+#include "core/threads/ThreadPool.hpp"
 #include "core/time/EngineClock.hpp"
 
 namespace atlas::core {
@@ -31,6 +32,7 @@ template <TypeOfGame G> class Engine final : public IEngine {
     [[nodiscard]] auto get_game() -> IGame& override;
 
     [[nodiscard]] auto get_clock() const -> const IEngineClock& override;
+    [[nodiscard]] auto get_thread_pool() -> IThreadPool& override;
 
   protected:
     [[nodiscard]] auto get_module_impl(std::type_index module) const
@@ -45,6 +47,7 @@ template <TypeOfGame G> class Engine final : public IEngine {
     std::vector<ITickable*> ticking_modules;
 
     EngineClock clock;
+    ThreadPool thread_pool;
 };
 
 template <TypeOfGame G> Engine<G>::~Engine() {
@@ -53,6 +56,8 @@ template <TypeOfGame G> Engine<G>::~Engine() {
     for (auto& [module_type, module] : modules) {
         module->shutdown();
     }
+
+    thread_pool.stop();
 
     std::println("Engine destroyed");
 }
@@ -110,6 +115,10 @@ auto Engine<G>::get_module_impl(std::type_index module) const -> IModule* {
 template <TypeOfGame G>
 auto Engine<G>::get_clock() const -> const IEngineClock& {
     return clock;
+}
+
+template <TypeOfGame G> auto Engine<G>::get_thread_pool() -> IThreadPool& {
+    return thread_pool;
 }
 
 template <TypeOfGame G> auto Engine<G>::tick_root() -> void {

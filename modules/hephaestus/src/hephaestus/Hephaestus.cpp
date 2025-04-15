@@ -1,5 +1,6 @@
 #include "hephaestus/Hephaestus.hpp"
 #include "core/IEngine.hpp"
+#include "core/threads/IThreadPool.hpp"
 
 #include <print>
 
@@ -20,10 +21,15 @@ auto Hephaestus::tick() -> void {
     }
     creation_queue.clear();
 
-    const auto& engine = get_engine();
+    auto& engine = get_engine();
+    auto& thread_pool = engine.get_thread_pool();
+
     for (auto& system : systems) {
-        system->execute(engine);
+        thread_pool.enqueue(
+            [this, &system, &engine]() { system->execute(engine); });
     }
+    thread_pool.await_all_tasks_completed();
+
     //
     // Destroy queued entities
 }
