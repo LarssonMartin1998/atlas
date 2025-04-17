@@ -16,12 +16,18 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        pkgsCross = pkgs.pkgsCross.mingwW64;
+
         stdenv = pkgs.llvmPackages.stdenv;
+        xstdenv = pkgsCross.stdenv;
+
+        pname = "atlas";
+        version = "0.1.0";
       in
       {
         packages.atlas = stdenv.mkDerivation {
-          pname = "atlas";
-          version = "0.1.0";
+          pname = pname;
+          version = version;
           src = ./.;
 
           buildInputs =
@@ -55,29 +61,30 @@
           '';
         };
 
-        # devShells.default = pkgs.mkShell {
-        #   buildInputs =
-        #     with pkgs;
-        #     [
-        #       clang
-        #       ninja
-        #       cmake
-        #       vkLoader
-        #       pkgs.vulkan-headers
-        #     ]
-        #     ++ lib.optionals stdenv.isDarwin [
-        #       moltenvk
-        #       pkgs.vulkan-validation-layers
-        #     ];
-        #
-        #   shellHook = ''
-        #     if [[ "$(uname)" == "Darwin" ]]; then
-        #       export VK_ICD_FILENAMES=${pkgs.moltenvk}/share/vulkan/icd.d/MoltenVK_icd.json
-        #       export VK_LAYER_PATH=${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d
-        #     fi
-        #     echo "🔧  Vulkan SDK ready – happy hacking!"
-        #   '';
-        # };
+        packages.atlas-windows = xstdenv.mkDerivation {
+          pname = pname;
+          version = version;
+          src = ./.;
+
+          buildInputs = with pkgsCross; [
+            vulkan-headers
+            vulkan-loader
+            glfw
+          ];
+
+          nativeBuildInputs = with pkgs; [
+            clang-tools
+            ninja
+            cmake
+          ];
+
+          cmakeFlags = [
+            "-DCMAKE_BUILD_TYPE=Release"
+            "-DBUILD_TESTS=OFF"
+            "-DENABLE_INSTALL=ON"
+          ];
+        };
+
         # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
         src = ./.;
 
