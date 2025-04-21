@@ -1,0 +1,20 @@
+Vulkan 1.2 (MoltenVK) Extensions
+
+VK_KHR_dynamic_rendering | Skip render‑pass/FB objects; record draws straight away.
+VK_KHR_synchronization2 | Modern barrier API—fewer structs, saner defaults.
+VK_KHR_copy_commands2 | 64‑bit‑safe versions of all copy/clear commands.
+VK_KHR_format_feature_flags2 | 64‑bit feature flags; future‑proof format queries.
+VK_KHR_maintenance4 | Spec clean‑ups, larger descriptor limits, zero‑size bounds.
+VK_EXT_extended_dynamic_state (+ …2) | Make viewports, blends, depth/stencil fully dynamic.
+VK_KHR_zero_initialize_workgroup_memory | Shared compute memory starts at zero—no manual clears.
+VK_KHR_shader_integer_dot_product | Fast int dot() for ML/lighting kernels.
+VK_KHR_shader_terminate_invocation | discard that is validation‑friendly & derivative‑safe.
+VK_EXT_inline_uniform_block | Push tiny uniform blobs without a buffer.
+VK_EXT_subgroup_size_control | Choose/lock wave size for compute & subgroup ops.
+VK_EXT_private_data | Attach your own 64‑bit handle to any Vulkan object.
+VK_EXT_pipeline_creation_feedback (+ cache_control) | Get build times & hint the driver’s pipeline cache.
+VK_EXT_image_robustness | Out‑of‑bounds reads return zero, not undefined garbage.
+VK_EXT_texel_buffer_alignment | Ask the driver for correct byte alignment for TBOs.
+VK_EXT_texture_compression_astc_hdr | ASTC HDR textures (good for iOS/macOS).
+VK_EXT_tooling_info | Detect if validation layers or profilers are active.
+VK_EXT_4444_formats | Adds 4‑4‑4‑4 BGRA/ARGB render/texture formats.

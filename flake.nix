@@ -35,6 +35,7 @@
             [
               vulkan-headers
               vulkan-loader
+              glfw
             ]
             ++ lib.optional stdenv.isDarwin [ moltenvk ];
 
