@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <print>
 
-static const char* shaderCodeVertex = R"(
+static const char* const shaderCodeVertex = R"(
 #version 410 core
 layout (location=0) out vec3 color;
 const vec2 pos[3] = vec2[3](
@@ -30,7 +30,7 @@ void main()
 }
 )";
 
-static const char* shaderCodeFragment = R"(
+static const char* const shaderCodeFragment = R"(
 #version 410 core
 layout (location=0) in vec3 color;
 layout (location=0) out vec4 out_FragColor;
