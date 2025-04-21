@@ -36,6 +36,7 @@
               vulkan-headers
               vulkan-loader
               glfw
+              glm
             ]
             ++ lib.optional stdenv.isDarwin [ moltenvk ];
 
@@ -71,6 +72,7 @@
             vulkan-headers
             vulkan-loader
             glfw
+            glm
           ];
 
           nativeBuildInputs = with pkgs; [
