@@ -19,6 +19,8 @@ class Iris final : public core::Module, public core::ITickable {
 
   private:
     GLFWwindow* window = nullptr;
+    signed long int buffer_size = 0;
+    std::uint32_t per_frame_data_buf = 0;
     std::uint32_t vertexShader = 0;
     std::uint32_t fragmentShader = 0;
     std::uint32_t program = 0;
