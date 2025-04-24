@@ -3,10 +3,18 @@
 #include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include <cstdint>
+#include <string_view>
 
 class GLFWwindow;
 
 namespace atlas::iris {
+struct Texture {
+    std::uint32_t id = 0;
+    int width = 0;
+    int height = 0;
+    std::string_view path;
+};
+
 class Iris final : public core::Module, public core::ITickable {
   public:
     explicit Iris(core::IEngine& engine);
@@ -18,6 +26,8 @@ class Iris final : public core::Module, public core::ITickable {
     [[nodiscard]] auto get_tick_rate() const -> unsigned override;
 
   private:
+    [[nodiscard]] auto create_texture(std::string_view path) const -> Texture;
+
     GLFWwindow* window = nullptr;
     signed long int buffer_size = 0;
     std::uint32_t per_frame_data_buf = 0;

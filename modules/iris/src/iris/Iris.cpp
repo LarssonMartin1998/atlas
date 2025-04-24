@@ -1,5 +1,10 @@
 #include "iris/Iris.hpp"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+
 // clang-format off
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -16,9 +21,8 @@ static const char* const shaderCodeVertex = R"(
 layout(std140, binding = 0) uniform PerFrameData
 {
 	uniform mat4 MVP;
-	uniform int isWireframe;
 };
-layout (location=0) out vec3 color;
+layout (location=0) out vec2 uv;
 const vec3 pos[8] = vec3[8](
 	vec3(-1.0,-1.0, 1.0),
 	vec3( 1.0,-1.0, 1.0),
@@ -30,16 +34,11 @@ const vec3 pos[8] = vec3[8](
 	vec3( 1.0, 1.0,-1.0),
 	vec3(-1.0, 1.0,-1.0)
 );
-const vec3 col[8] = vec3[8](
-	vec3( 1.0, 0.0, 0.0),
-	vec3( 0.0, 1.0, 0.0),
-	vec3( 0.0, 0.0, 1.0),
-	vec3( 1.0, 1.0, 0.0),
-
-	vec3( 1.0, 1.0, 0.0),
-	vec3( 0.0, 0.0, 1.0),
-	vec3( 0.0, 1.0, 0.0),
-	vec3( 1.0, 0.0, 0.0)
+const vec2 texture_coordinates[4] = vec2[4](
+    vec2(0.0, 0.0), // bottom-left
+    vec2(1.0, 0.0), // bottom-right
+    vec2(1.0, 1.0), // top-right
+    vec2(0.0, 1.0)  // top-left
 );
 const int indices[36] = int[36](
 	// front
@@ -57,20 +56,36 @@ const int indices[36] = int[36](
 );
 void main()
 {
-	int idx = indices[gl_VertexID];
-	gl_Position = MVP * vec4(pos[idx], 1.0);
-	color = isWireframe > 0 ? vec3(0.0) : col[idx];
+    int vertexID = gl_VertexID;
+    int idx = indices[vertexID];
+    gl_Position = MVP * vec4(pos[idx], 1.0);
+    
+    // Calculate which face we're on (0-5)
+    int faceID = vertexID / 6;
+    // Calculate which vertex we are within the face (0-5)
+    int faceVertex = vertexID % 6;
+    
+    // Map the 6 vertices of each face (two triangles) to the 4 corners of a UV square
+    int uvIdx;
+    if (faceVertex == 0) uvIdx = 0;      // Bottom-left
+    else if (faceVertex == 1) uvIdx = 1;  // Bottom-right
+    else if (faceVertex == 2) uvIdx = 2;  // Top-right
+    else if (faceVertex == 3) uvIdx = 2;  // Top-right (repeated)
+    else if (faceVertex == 4) uvIdx = 3;  // Top-left
+    else uvIdx = 0;                      // Bottom-left (repeated)
+    
+    uv = texture_coordinates[uvIdx];
 }
 )";
 
 static const char* const shaderCodeFragment = R"(
 #version 450 core
-layout (location=0) in vec3 color;
+layout (location=0) in vec2 uv;
 layout (location=0) out vec4 out_FragColor;
+uniform sampler2D tex;
 void main()
 {
-	out_FragColor = vec4(0.32, 0.4, 0.1, 1.0);
-	// out_FragColor = vec4(color, 1.0);
+	out_FragColor = texture(tex, uv);
 };
 )";
 
@@ -164,6 +179,8 @@ auto Iris::start() -> void {
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
 
+    auto texture = create_texture("data/ch2_sample3_STB.jpg");
+
     // …after glCompileShader(shaderVertex):
     checkShader(vertexShader, "Vertex shader");
     // …after glCompileShader(fragmentShader):
@@ -194,7 +211,11 @@ auto Iris::tick() -> void {
     glViewport(0, 0, width, height);
 
     glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    constexpr auto unsigned_color_buffer_bit =
+        static_cast<unsigned>(GL_COLOR_BUFFER_BIT);
+    constexpr auto unsigned_depth_buffer_bit =
+        static_cast<unsigned>(GL_DEPTH_BUFFER_BIT);
+    glClear(unsigned_color_buffer_bit | unsigned_depth_buffer_bit);
 
     const auto ratio = static_cast<float>(width) / static_cast<float>(height);
     const auto one = glm::vec3(1.0F);
@@ -226,4 +247,22 @@ auto Iris::tick() -> void {
 }
 
 auto Iris::get_tick_rate() const -> unsigned { return 1; }
+auto Iris::create_texture(std::string_view path) const -> Texture {
+    int channels = 0;
+    Texture texture;
+    const std::uint8_t* image =
+        stbi_load(path.data(), &texture.width, &texture.height, &channels, 3);
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
+    glTextureParameteri(texture.id, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(texture.id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(texture.id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureStorage2D(texture.id, 1, GL_RGB8, texture.width, texture.height);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTextureSubImage2D(texture.id, 0, 0, 0, texture.width, texture.height,
+                        GL_RGB, GL_UNSIGNED_BYTE, image);
+    glBindTextures(0, 1, &texture.id);
+    stbi_image_free((void*)image);
+    return texture;
+}
 } // namespace atlas::iris

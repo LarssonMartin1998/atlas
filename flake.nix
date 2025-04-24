@@ -37,6 +37,7 @@
               vulkan-loader
               glfw
               glm
+              stb
             ]
             ++ lib.optional stdenv.isDarwin [ moltenvk ];
 
@@ -45,6 +46,7 @@
             ninja
             cmake
             gtest
+            pkg-config
           ];
 
           cmakeFlags = [
@@ -73,12 +75,14 @@
             vulkan-loader
             glfw
             glm
+            stb
           ];
 
           nativeBuildInputs = with pkgs; [
             clang-tools
             ninja
             cmake
+            pkg-config
           ];
 
           cmakeFlags = [
