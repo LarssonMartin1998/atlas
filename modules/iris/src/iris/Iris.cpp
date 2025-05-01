@@ -210,7 +210,8 @@ auto Iris::tick() -> void {
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
-    glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
+    constexpr glm::vec3 clear_color(1.0F, 0.5F, 0.7F);
+    glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0F);
     constexpr auto unsigned_color_buffer_bit =
         static_cast<unsigned>(GL_COLOR_BUFFER_BIT);
     constexpr auto unsigned_depth_buffer_bit =
