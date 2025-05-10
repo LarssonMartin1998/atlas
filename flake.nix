@@ -24,6 +24,10 @@
           version = "0.1.0";
           src = ./.;
 
+          buildInputs = with pkgs; [
+            taskflow
+          ];
+
           nativeBuildInputs = with pkgs; [
             clang-tools
             ninja

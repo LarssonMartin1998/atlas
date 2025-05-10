@@ -23,7 +23,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
-include(SetupModules.cmake SetupExternalLibraries.cmake)
+include(SetupModules.cmake)
+include(SetupExternalLibraries.cmake)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)
