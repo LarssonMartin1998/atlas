@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <typeindex>
 
@@ -13,6 +14,14 @@ class IThreadPool;
 } // namespace atlas::core
 
 namespace atlas::core {
+enum class EngineInitStatus : std::uint8_t {
+    NotInitialized,
+    RunningPreStart,
+    RunningStart,
+    RunningPostStart,
+    Initialized,
+};
+
 class IEngine {
   public:
     virtual ~IEngine() = default;
@@ -32,6 +41,9 @@ class IEngine {
 
     template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
+
+    [[nodiscard]] virtual auto get_engine_init_status() const
+        -> EngineInitStatus = 0;
 
   protected:
     IEngine() = default;

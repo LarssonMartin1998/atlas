@@ -33,6 +33,8 @@ template <TypeOfGame G> class Engine final : public IEngine {
 
     [[nodiscard]] auto get_clock() const -> const IEngineClock& override;
     [[nodiscard]] auto get_thread_pool() -> IThreadPool& override;
+    [[nodiscard]] auto get_engine_init_status() const
+        -> EngineInitStatus override;
 
   protected:
     [[nodiscard]] auto get_module_impl(std::type_index module) const
@@ -48,6 +50,8 @@ template <TypeOfGame G> class Engine final : public IEngine {
 
     EngineClock clock;
     ThreadPool thread_pool;
+
+    EngineInitStatus init_status = EngineInitStatus::NotInitialized;
 };
 
 template <TypeOfGame G> Engine<G>::~Engine() {
@@ -65,13 +69,28 @@ template <TypeOfGame G> Engine<G>::~Engine() {
 template <TypeOfGame G> auto Engine<G>::run() -> void {
     std::println("Engine::run()");
 
+    game.set_engine(*this);
+
+    init_status = EngineInitStatus::RunningPreStart;
     create_modules(*this, modules, ticking_modules);
     for (auto& [module_type, module] : modules) {
         module->start();
     }
+    game.pre_start();
 
-    game.set_engine(*this);
+    init_status = EngineInitStatus::RunningStart;
+    for (auto& [module_type, module] : modules) {
+        module->pre_start();
+    }
     game.start();
+
+    init_status = EngineInitStatus::RunningPostStart;
+    for (auto& [module_type, module] : modules) {
+        module->post_start();
+    }
+    game.post_start();
+
+    init_status = EngineInitStatus::Initialized;
 
     auto num_frames = 0;
     while (!game.should_quit()) {
@@ -104,6 +123,11 @@ template <TypeOfGame G> auto Engine<G>::run() -> void {
 }
 
 template <TypeOfGame G> auto Engine<G>::get_game() -> IGame& { return game; }
+
+template <TypeOfGame G>
+auto Engine<G>::get_engine_init_status() const -> EngineInitStatus {
+    return init_status;
+}
 
 template <TypeOfGame G>
 auto Engine<G>::get_module_impl(std::type_index module) const -> IModule* {
