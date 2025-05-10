@@ -2,14 +2,13 @@
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include <print>
-#include <unordered_set>
 
 namespace atlas::hephaestus {
 struct ArchetypeQueryContext final {
     explicit ArchetypeQueryContext(
         const ArchetypeMap& archetypes,
-        std::unordered_set<std::type_index>&& signature)
-        : archetypes{archetypes}, signature{std::move(signature)} {
+        std::vector<std::type_index>&& component_types)
+        : archetypes{archetypes}, component_types{std::move(component_types)} {
 
         std::println("QueryContext Constructor");
     }
@@ -24,6 +23,6 @@ struct ArchetypeQueryContext final {
     ~ArchetypeQueryContext() = default;
 
     const ArchetypeMap& archetypes;
-    const std::unordered_set<std::type_index> signature;
+    const std::vector<std::type_index> component_types;
 };
 } // namespace atlas::hephaestus

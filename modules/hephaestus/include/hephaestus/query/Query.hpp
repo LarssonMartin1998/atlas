@@ -13,9 +13,8 @@ namespace atlas::hephaestus {
 template <AllTypeOfComponent... ComponentTypes> class Query final {
   public:
     Query(const ArchetypeMap& archetypes,
-          std::vector<std::type_index> component_types)
-        : context{archetypes,
-                  {component_types.begin(), component_types.end()}} {
+          std::vector<std::type_index>&& component_types)
+        : context{archetypes, std::move(component_types)} {
         std::println("Query Constructor");
     }
 
@@ -30,7 +29,7 @@ template <AllTypeOfComponent... ComponentTypes> class Query final {
   private:
     using PipelineType = decltype(build_pipeline<ComponentTypes...>(
         std::declval<const ArchetypeMap&>(),
-        std::declval<const std::unordered_set<std::type_index>&>()));
+        std::declval<const std::vector<std::type_index>&>()));
 
   public:
     [[nodiscard]]
@@ -75,8 +74,8 @@ template <AllTypeOfComponent... ComponentTypes>
     -> QueryResult<PipelineType>& {
     const auto cumsum_version = calc_components_cumsum_version();
     if (is_cache_dirty(cumsum_version)) {
-        cache.emplace(build_pipeline<ComponentTypes...>(context.archetypes,
-                                                        context.signature));
+        cache.emplace(build_pipeline<ComponentTypes...>(
+            context.archetypes, context.component_types));
         last_cache_cumsum_version = cumsum_version;
     }
 
