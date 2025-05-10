@@ -4,6 +4,7 @@
 #include <tuple>
 #include <vector>
 
+#include "core/IEngine.hpp"
 #include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include "hephaestus/Archetype.hpp"
@@ -19,11 +20,19 @@ class Hephaestus;
 }
 
 namespace atlas::hephaestus {
+struct SystemNode {
+    std::vector<std::type_index> component_dependencies;
+    std::vector<std::reference_wrapper<const std::vector<std::type_index>>>
+        affected_archetypes;
+};
+
 class Hephaestus final : public core::Module, public core::ITickable {
   public:
     explicit Hephaestus(core::IEngine& engine);
 
     auto start() -> void override;
+    auto post_start() -> void override;
+
     auto shutdown() -> void override;
 
     auto tick() -> void override;
@@ -37,12 +46,16 @@ class Hephaestus final : public core::Module, public core::ITickable {
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
+    auto build_systems_dependency_graph() -> void;
+
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
     ArchetypeMap archetypes;
 
     std::vector<std::function<void()>> creation_queue;
     std::vector<std::function<void()>> destroy_queue;
+    std::optional<std::vector<SystemNode>> system_nodes =
+        std::vector<SystemNode>{};
 
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
@@ -80,6 +93,12 @@ class Hephaestus final : public core::Module, public core::ITickable {
 };
 
 template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
+    const auto init_status = get_engine().get_engine_init_status();
+    assert(init_status == core::EngineInitStatus::RunningStart &&
+           "Cannot create systems after startup.");
+    assert(system_nodes != std::nullopt &&
+           "Trying to create a system after the system_nodes have been reset.");
+
     using Traits = FunctionTraits<std::decay_t<Func>>;
     using QueryType =
         typename Traits::QueryType; // e.g. Query<Transform, Velocity>
@@ -96,10 +115,15 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
             // Velocity()). Only need the *types*:
             using SystemType = System<std::decay_t<decltype(dummy)>...>;
 
+            auto signature = make_component_type_signature<
+                std::decay_t<decltype(dummy)>...>();
+
+            system_nodes->emplace_back(SystemNode{
+                .component_dependencies = signature,
+            });
+
             auto new_system = std::make_unique<SystemType>(
-                std::forward<Func>(func), archetypes,
-                make_component_type_signature<
-                    std::decay_t<decltype(dummy)>...>());
+                std::forward<Func>(func), archetypes, std::move(signature));
 
             systems.emplace_back(std::move(new_system));
         },
