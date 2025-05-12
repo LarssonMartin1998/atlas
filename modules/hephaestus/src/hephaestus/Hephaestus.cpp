@@ -1,15 +1,19 @@
 #include "hephaestus/Hephaestus.hpp"
 #include "core/IEngine.hpp"
-#include "core/threads/IThreadPool.hpp"
 #include "hephaestus/query/QueryComponentsPipeline.hpp"
 
-#include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <print>
-// #include <taskflow/taskflow.hpp>
 
 namespace atlas::hephaestus {
-Hephaestus::Hephaestus(core::IEngine& engine) : core::Module{engine} {
+Hephaestus::Hephaestus(core::IEngine& engine)
+    : core::Module{engine},
+      // Might want to reserve some threads for other tasks such as rendering,
+      // physics and other stuff.
+      // This is OK for now, but we should handle this in a centralized way
+      // later on to make sure that we don't have too many threads.
+      systems_executor(std::thread::hardware_concurrency()) {
     constexpr auto queue_buffert = 100;
     creation_queue.reserve(queue_buffert);
     destroy_queue.reserve(queue_buffert);
@@ -19,14 +23,7 @@ Hephaestus::Hephaestus(core::IEngine& engine) : core::Module{engine} {
 auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
 
 // Create all dendency graphs and taskflow shit here
-auto Hephaestus::post_start() -> void {
-    build_systems_dependency_graph();
-    // tf::Taskflow tf;
-    // auto result = tf.emplace([]() {
-    //     std::println("");
-    //     return 1;
-    // });
-}
+auto Hephaestus::post_start() -> void { build_systems_dependency_graph(); }
 
 auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
 
@@ -36,14 +33,9 @@ auto Hephaestus::tick() -> void {
     }
     creation_queue.clear();
 
-    auto& engine = get_engine();
-    auto& thread_pool = engine.get_thread_pool();
-
-    for (auto& system : systems) {
-        thread_pool.enqueue(
-            [this, &system, &engine]() { system->execute(engine); });
+    if (!systems_graph.empty()) {
+        systems_executor.run(systems_graph).wait();
     }
-    thread_pool.await_all_tasks_completed();
 
     //
     // Destroy queued entities
@@ -60,10 +52,19 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         system_nodes != std::nullopt &&
         "system_nodes has been reset before the dependency_graph was built.");
 
-    std::vector<std::vector<std::size_t>> system_deps = {};
-
     const auto num_nodes = (*system_nodes).size();
-    system_deps.reserve(num_nodes);
+    if (num_nodes == 0) {
+        return;
+    }
+
+    std::vector<std::vector<std::size_t>> system_deps(num_nodes);
+
+    // Very pessimistic guesswork for inner vector capacity, but safe.
+    // Choose a more realistic number if needed.
+    const auto inner_vec_capacity_guess = num_nodes;
+    for (size_t i = 0; i < num_nodes; ++i) {
+        system_deps[i].reserve(inner_vec_capacity_guess);
+    }
 
     for (auto& node : *system_nodes) {
         auto filtered = filter_archetypes_to_signature(
@@ -74,50 +75,49 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         }
     }
 
-    size_t covered = 0;
-    for (size_t i = 0; i < num_nodes; i++) {
-        auto& node = (*system_nodes)[i];
+    const auto are_nodes_conflicting = [](const SystemNode& node,
+                                          const SystemNode& other) {
+        if (are_signatures_overlapping(node.component_dependencies,
+                                       other.component_dependencies)) {
+            return true;
+        }
 
-        std::vector<std::size_t> tmp;
-        tmp.reserve(num_nodes);
-        auto& node_deps = system_deps.emplace_back(std::move(tmp));
-        node_deps.reserve(num_nodes);
-
-        for (size_t j = covered; j < num_nodes; j++) {
-            auto& other = (*system_nodes)[j];
-
-            if (&node == &other) {
-                continue;
-            }
-
-            if (are_signatures_overlapping(node.component_dependencies,
-                                           other.component_dependencies)) {
-                node_deps.emplace_back(j);
-                continue;
-            }
-
-            if ([&node, &other]() {
-                    for (const auto& idx : node.affected_archetypes) {
-                        for (const auto& other_idx :
-                             other.affected_archetypes) {
-                            if (are_signatures_overlapping(idx.get(),
-                                                           other_idx.get())) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                }()) {
-                node_deps.emplace_back(j);
-                continue;
+        for (const auto& idx_i : node.affected_archetypes) {
+            for (const auto& idx_j : other.affected_archetypes) {
+                if (are_signatures_overlapping(idx_i.get(), idx_j.get())) {
+                    return true;
+                }
             }
         }
 
-        covered++;
+        return false;
+    };
+
+    for (size_t i = 0; i < num_nodes; ++i) {
+        auto& node = (*system_nodes)[i];
+
+        for (size_t j = i + 1; j < num_nodes; ++j) {
+            auto& other = (*system_nodes)[j];
+
+            if (are_nodes_conflicting(node, other)) {
+                system_deps[i].emplace_back(j);
+                system_deps[j].emplace_back(i);
+            }
+        }
     }
 
-    // todo: create a taskflow graph from the system_deps
+    std::vector<tf::Task> tasks(num_nodes);
+    for (size_t i = 0; i < num_nodes; ++i) {
+        tasks[i] = systems_graph.emplace(
+            [this, i]() { systems[i]->execute(get_engine()); });
+    }
 
-    system_nodes.reset();
+    for (size_t i = 0; i < num_nodes; ++i) {
+        for (size_t j : system_deps[i]) {
+            if (i < j) {
+                tasks[i].precede(tasks[j]);
+            }
+        }
+    }
 }
 } // namespace atlas::hephaestus

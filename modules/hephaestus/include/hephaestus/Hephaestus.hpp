@@ -1,8 +1,10 @@
 #pragma once
 
-#include <algorithm>
+#include <optional>
 #include <tuple>
 #include <vector>
+
+#include <taskflow/taskflow.hpp> // Include Taskflow headers
 
 #include "core/IEngine.hpp"
 #include "core/ITickable.hpp"
@@ -14,10 +16,6 @@
 #include "hephaestus/System.hpp"
 #include "hephaestus/SystemBase.hpp"
 #include "hephaestus/Utils.hpp"
-
-namespace atlas::hephaestus {
-class Hephaestus;
-}
 
 namespace atlas::hephaestus {
 struct SystemNode {
@@ -56,6 +54,9 @@ class Hephaestus final : public core::Module, public core::ITickable {
     std::vector<std::function<void()>> destroy_queue;
     std::optional<std::vector<SystemNode>> system_nodes =
         std::vector<SystemNode>{};
+
+    tf::Taskflow systems_graph;
+    tf::Executor systems_executor;
 
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
