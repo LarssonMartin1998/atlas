@@ -19,7 +19,7 @@
         stdenv = pkgs.llvmPackages.stdenv;
       in
       {
-        packages.default = stdenv.mkDerivation {
+        packages.atlas = stdenv.mkDerivation {
           pname = "atlas";
           version = "0.1.0";
           src = ./.;
@@ -49,6 +49,7 @@
 
         # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
         src = ./.;
+        packages.default = self.packages.${system}.atlas;
       }
     );
 }
