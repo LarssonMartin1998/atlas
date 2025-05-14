@@ -102,24 +102,24 @@ template <TypeOfGame G> auto Engine<G>::run() -> void {
 
     std::println("Num frames: {}", num_frames);
 
-    const auto path = std::string("perf_stats/no_changes");
-    std::filesystem::create_directories(path);
-
-    const auto file_count = std::count_if(
-        std::filesystem::directory_iterator(path),
-        std::filesystem::directory_iterator(),
-        [](auto const& entry) { return entry.is_regular_file(); });
-
-    const auto file_name = path + "/" + std::to_string(file_count) + ".txt";
-    {
-        std::ofstream ofs(file_name);
-        if (!ofs) {
-            std::println("Failed to open file: {}", file_name);
-        } else {
-            ofs << num_frames << "\n";
-            std::println("Wrote {} frames to {}", num_frames, file_name);
-        }
-    }
+    // const auto path = std::string("perf_stats/no_changes");
+    // std::filesystem::create_directories(path);
+    //
+    // const auto file_count = std::count_if(
+    //     std::filesystem::directory_iterator(path),
+    //     std::filesystem::directory_iterator(),
+    //     [](auto const& entry) { return entry.is_regular_file(); });
+    //
+    // const auto file_name = path + "/" + std::to_string(file_count) + ".txt";
+    // {
+    //     std::ofstream ofs(file_name);
+    //     if (!ofs) {
+    //         std::println("Failed to open file: {}", file_name);
+    //     } else {
+    //         ofs << num_frames << "\n";
+    //         std::println("Wrote {} frames to {}", num_frames, file_name);
+    //     }
+    // }
 }
 
 template <TypeOfGame G> auto Engine<G>::get_game() -> IGame& { return game; }

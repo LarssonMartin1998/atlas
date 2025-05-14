@@ -33,9 +33,9 @@ auto Hephaestus::tick() -> void {
     }
     creation_queue.clear();
 
-    if (!systems_graph.empty()) {
-        systems_executor.run(systems_graph).wait();
-    }
+    // if (!systems_graph.empty()) {
+    //     systems_executor.run(systems_graph).wait();
+    // }
 
     //
     // Destroy queued entities

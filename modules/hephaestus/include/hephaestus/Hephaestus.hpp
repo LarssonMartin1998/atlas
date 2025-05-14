@@ -75,22 +75,23 @@ class Hephaestus final : public core::Module, public core::ITickable {
     // Now the partial specialization for a non-generic, const lambda
     // with exactly two parameters.
     template <typename ClassType, typename ReturnType, typename EngineParam,
-              typename QueryParam>
+              typename TupleParam>
 
-    struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, QueryParam)
+    struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, TupleParam)
                               const> {
         using EngineType = std::decay_t<EngineParam>;
-        using QueryType = std::decay_t<QueryParam>;
+        using TupleType = std::decay_t<TupleParam>;
     };
-
-    // extracts the pack from `Query<Components...>`
-    template <typename T> struct QueryTraits; // primary template, no definition
-
-    // partial specialization
-    template <AllTypeOfComponent... Components>
-    struct QueryTraits<Query<Components...>> {
-        using ComponentTuple = std::tuple<Components...>;
-    };
+    //
+    // // extracts the pack from `Query<Components...>`
+    // template <typename T> struct QueryTraits; // primary template, no
+    // definition
+    //
+    // // partial specialization
+    // template <AllTypeOfComponent... Components>
+    // struct QueryTraits<Query<Components...>> {
+    //     using ComponentTuple = std::tuple<Components...>;
+    // };
 };
 
 template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
@@ -101,11 +102,8 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
            "Trying to create a system after the system_nodes have been reset.");
 
     using Traits = FunctionTraits<std::decay_t<Func>>;
-    using QueryType =
-        typename Traits::QueryType; // e.g. Query<Transform, Velocity>
-    using QueryTraits = QueryTraits<QueryType>;
-    using CompTuple =
-        typename QueryTraits::ComponentTuple; // std::tuple<Transform,
+    using TupleType =
+        typename Traits::TupleType; // e.g. std::tuple<Transform, Velocity>
 
     // "expand" that tuple to get ComponentTypes...
     // So we can do: System<ComponentTypes...>
@@ -128,7 +126,7 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
 
             systems.emplace_back(std::move(new_system));
         },
-        CompTuple{});
+        TupleType{});
 }
 
 // No entities are created on the fly. We enqueue all of it into a collection
