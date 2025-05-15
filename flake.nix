@@ -18,7 +18,7 @@
         pkgs = import nixpkgs { inherit system; };
         pkgsCross = pkgs.pkgsCross.mingwW64;
 
-        stdenv = pkgs.llvmPackages.stdenv;
+        stdenv = pkgs.llvmPackages_20.stdenv;
         xstdenv = pkgsCross.stdenv;
 
         pname = "atlas";
@@ -42,7 +42,7 @@
             ++ lib.optional stdenv.isDarwin [ moltenvk ];
 
           nativeBuildInputs = with pkgs; [
-            clang-tools
+            llvmPackages_20.clang-tools
             ninja
             cmake
             gtest
@@ -79,7 +79,7 @@
           ];
 
           nativeBuildInputs = with pkgs; [
-            clang-tools
+            llvmPackages_20.clang-tools
             ninja
             cmake
             pkg-config
@@ -96,6 +96,10 @@
         src = ./.;
 
         packages.default = self.packages.${system}.atlas;
+
+        shellHook = ''
+          export CXXFLAGS="$NIX_CFLAGS_COMPILE";
+        '';
       }
     );
 }

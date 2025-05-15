@@ -25,7 +25,6 @@ add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
 
 include(SetupModules.cmake)
-include(FixupClangdIncludeDirs.cmake)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)
