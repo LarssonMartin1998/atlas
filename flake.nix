@@ -4,7 +4,6 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    patch_cc.url = "github:LarssonMartin1998/patch-compile-commands";
   };
 
   outputs =
@@ -12,7 +11,6 @@
       self,
       nixpkgs,
       flake-utils,
-      patch_cc,
     }:
     flake-utils.lib.eachSystem [ "aarch64-darwin" "aarch64-linux" "x86_64-darwin" "x86_64-linux" ] (
       system:
@@ -35,7 +33,6 @@
             ninja
             cmake
             gtest
-            patch_cc.packages.${system}.default
           ];
 
           cmakeFlags = [
@@ -49,7 +46,9 @@
             ctest --output-on-failure
           '';
 
-          shellHook = patch_cc.lib.shellHook;
+          shellHook = ''
+            export CXXFLAGS="$NIX_CFLAGS_COMPILE"
+          '';
         };
 
         # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
