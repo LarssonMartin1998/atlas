@@ -82,9 +82,9 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
             return true;
         }
 
-        for (const auto& idx_i : node.affected_archetypes) {
-            for (const auto& idx_j : other.affected_archetypes) {
-                if (are_signatures_overlapping(idx_i.get(), idx_j.get())) {
+        for (const auto& i : node.affected_archetypes) {
+            for (const auto& j : other.affected_archetypes) {
+                if (are_signatures_overlapping(i.get(), j.get())) {
                     return true;
                 }
             }
