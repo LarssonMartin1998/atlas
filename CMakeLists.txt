@@ -44,3 +44,15 @@ endif()
 if(ENABLE_INSTALL AND BUILDING_ONLY_ATLAS)
   install(TARGETS atlas DESTINATION lib)
 endif()
+
+# target_compile_definitions(atlas PRIVATE $<$<CONFIG:Debug>:U_FORTIFY_SOURCE>)
+# target_compile_options( atlas PRIVATE # ────────── flags common to *every*
+# compiler in Debug mode ────────── $<$<CONFIG:Debug>:-O0 -g3 -gdwarf-5> #
+# ────────── extra love for Clang (LLDB) ──────────
+# $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:Clang>>:
+# -glldb # DWARF tuned for LLDB -fstandalone-debug # keep full template
+# definitions -gsimple-template-names # shorter template names (Clang 18+) > #
+# ────────── extra love for GCC (GDB) ──────────
+# $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:
+# -ggdb # DWARF tuned for GDB # GCC already emits complete debug info, so no
+# GCC-specific analogue # to -fstandalone-debug is needed here. >)
