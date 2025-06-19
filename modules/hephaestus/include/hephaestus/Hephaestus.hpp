@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include <taskflow/taskflow.hpp> // Include Taskflow headers
@@ -18,6 +19,9 @@
 #include "hephaestus/Utils.hpp"
 
 namespace atlas::hephaestus {
+template <typename T> struct Debug;
+template <typename... Ts> struct Debugs;
+
 struct SystemNode {
     std::vector<std::type_index> component_dependencies;
     std::vector<std::reference_wrapper<const std::vector<std::type_index>>>
@@ -82,16 +86,18 @@ class Hephaestus final : public core::Module, public core::ITickable {
         using EngineType = std::decay_t<EngineParam>;
         using TupleType = std::decay_t<TupleParam>;
     };
-    //
-    // // extracts the pack from `Query<Components...>`
-    // template <typename T> struct QueryTraits; // primary template, no
-    // definition
-    //
-    // // partial specialization
-    // template <AllTypeOfComponent... Components>
-    // struct QueryTraits<Query<Components...>> {
-    //     using ComponentTuple = std::tuple<Components...>;
-    // };
+
+    template <typename T> struct TupleElements;
+
+    template <typename... Ts> struct TupleElements<std::tuple<Ts...>> {
+        template <template <typename...> class Template>
+        using Apply = Template<std::remove_reference_t<Ts>...>;
+
+        static auto make_signature() {
+            return make_component_type_signature<
+                std::remove_reference_t<Ts>...>();
+        }
+    };
 };
 
 template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
@@ -103,30 +109,19 @@ template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
 
     using Traits = FunctionTraits<std::decay_t<Func>>;
     using TupleType =
-        typename Traits::TupleType; // e.g. std::tuple<Transform, Velocity>
+        typename Traits::TupleType; // e.g. std::tuple<Transform&, Velocity&>
+    using Components = TupleElements<TupleType>;
+    using SystemType = typename Components::template Apply<System>;
 
-    // "expand" that tuple to get ComponentTypes...
-    // So we can do: System<ComponentTypes...>
-    std::apply(
-        [&](auto... dummy) {
-            // dummy are placeholders of type components types
-            // But they are all value-initialized (like Transform(),
-            // Velocity()). Only need the *types*:
-            using SystemType = System<std::decay_t<decltype(dummy)>...>;
+    auto signature = Components::make_signature();
+    system_nodes->emplace_back(SystemNode{
+        .component_dependencies = signature,
+    });
 
-            auto signature = make_component_type_signature<
-                std::decay_t<decltype(dummy)>...>();
+    auto new_system = std::make_unique<SystemType>(
+        std::forward<Func>(func), archetypes, std::move(signature));
 
-            system_nodes->emplace_back(SystemNode{
-                .component_dependencies = signature,
-            });
-
-            auto new_system = std::make_unique<SystemType>(
-                std::forward<Func>(func), archetypes, std::move(signature));
-
-            systems.emplace_back(std::move(new_system));
-        },
-        TupleType{});
+    systems.emplace_back(std::move(new_system));
 }
 
 // No entities are created on the fly. We enqueue all of it into a collection
