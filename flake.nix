@@ -16,16 +16,20 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        stdenv = pkgs.llvmPackages.stdenv;
+        stdenv = pkgs.llvmPackages_20.stdenv;
       in
       {
-        packages.default = stdenv.mkDerivation {
+        packages.atlas = stdenv.mkDerivation {
           pname = "atlas";
           version = "0.1.0";
           src = ./.;
 
+          buildInputs = with pkgs; [
+            taskflow
+          ];
+
           nativeBuildInputs = with pkgs; [
-            clang-tools
+            llvmPackages_20.clang-tools
             ninja
             cmake
             gtest
@@ -41,10 +45,15 @@
           checkPhase = ''
             ctest --output-on-failure
           '';
+
+          shellHook = ''
+            export CXXFLAGS="$NIX_CFLAGS_COMPILE"
+          '';
         };
 
         # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
         src = ./.;
+        packages.default = self.packages.${system}.atlas;
       }
     );
 }

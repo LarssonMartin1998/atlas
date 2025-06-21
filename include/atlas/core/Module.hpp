@@ -14,8 +14,13 @@ class Module : public virtual IModule {
     [[nodiscard]] auto get_engine() const -> IEngine& override;
 
   protected:
+    auto pre_start() -> void override;
     auto start() -> void override;
+    auto post_start() -> void override;
+
+    auto pre_shutdown() -> void override;
     auto shutdown() -> void override;
+    auto post_shutdown() -> void override;
 
   private:
     IEngine& engine;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <typeindex>
 
@@ -8,9 +9,19 @@
 namespace atlas::core {
 class IGame;
 class IModule;
+class IEngineClock;
+class IThreadPool;
 } // namespace atlas::core
 
 namespace atlas::core {
+enum class EngineInitStatus : std::uint8_t {
+    NotInitialized,
+    RunningPreStart,
+    RunningStart,
+    RunningPostStart,
+    Initialized,
+};
+
 class IEngine {
   public:
     virtual ~IEngine() = default;
@@ -25,8 +36,14 @@ class IEngine {
 
     [[nodiscard]] virtual auto get_game() -> IGame& = 0;
 
+    [[nodiscard]] virtual auto get_clock() const -> const IEngineClock& = 0;
+    [[nodiscard]] virtual auto get_thread_pool() -> IThreadPool& = 0;
+
     template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
+
+    [[nodiscard]] virtual auto get_engine_init_status() const
+        -> EngineInitStatus = 0;
 
   protected:
     IEngine() = default;
