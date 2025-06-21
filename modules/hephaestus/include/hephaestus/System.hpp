@@ -78,9 +78,10 @@ auto System<ComponentTypes...>::execute(const core::IEngine& engine,
     const auto effective_workers =
         std::max<std::size_t>(1, num_workers / concurrent_systems_estimate);
 
+    constexpr std::size_t MIN_PARALLEL_WORKERS = MIN_PARALLEL_THRESHOLD / 2;
     auto chunk_size =
         std::max<std::size_t>(1, entity_count / effective_workers);
-    chunk_size = std::max<std::size_t>(chunk_size, MIN_PARALLEL_THRESHOLD);
+    chunk_size = std::max<std::size_t>(chunk_size, MIN_PARALLEL_WORKERS);
 
     subflow.for_each_index(0, entity_count, chunk_size,
                            [this, &engine, &entity_components](std::size_t i) {
