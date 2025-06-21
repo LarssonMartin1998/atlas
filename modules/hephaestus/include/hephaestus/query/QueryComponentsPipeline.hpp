@@ -13,12 +13,15 @@ template <AllTypeOfComponent... ComponentTypes>
 auto filter_archetypes_to_signature(
     const ArchetypeMap& map, const std::vector<std::type_index>& signature) {
     return map | std::ranges::views::filter([&](const auto& pair) {
-        const auto& archetype_component_types = pair.first;
-        return std::ranges::all_of(signature, [&archetype_component_types](
-                                                  const auto& signature_type) {
-            return std::ranges::find(archetype_component_types, signature_type) != archetype_component_types.end();
-        });
-    });
+               const auto& archetype_component_types = pair.first;
+               return std::ranges::all_of(
+                   signature,
+                   [&archetype_component_types](const auto& signature_type) {
+                       return std::ranges::find(archetype_component_types,
+                                                signature_type) !=
+                              archetype_component_types.end();
+                   });
+           });
 }
 
 template <AllTypeOfComponent... ComponentTypes>
@@ -31,5 +34,4 @@ auto build_pipeline(const ArchetypeMap& map,
            }) |
            std::ranges::views::join;
 }
-
 } // namespace atlas::hephaestus

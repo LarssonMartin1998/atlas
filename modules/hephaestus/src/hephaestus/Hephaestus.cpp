@@ -33,9 +33,9 @@ auto Hephaestus::tick() -> void {
     }
     creation_queue.clear();
 
-    // if (!systems_graph.empty()) {
-    //     systems_executor.run(systems_graph).wait();
-    // }
+    if (!systems_graph.empty()) {
+        systems_executor.run(systems_graph).wait();
+    }
 
     //
     // Destroy queued entities
@@ -58,12 +58,10 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     std::vector<std::vector<std::size_t>> system_deps(num_nodes);
-
     // Very pessimistic guesswork for inner vector capacity, but safe.
     // Choose a more realistic number if needed.
-    const auto inner_vec_capacity_guess = num_nodes;
     for (size_t i = 0; i < num_nodes; ++i) {
-        system_deps[i].reserve(inner_vec_capacity_guess);
+        system_deps[i].reserve(num_nodes);
     }
 
     for (auto& node : *system_nodes) {
@@ -106,10 +104,17 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         }
     }
 
+    for (std::size_t i = 0; i < num_nodes; ++i) {
+        const auto conflicts = system_deps[i].size();
+        const auto concurrent = std::max<std::size_t>(1, num_nodes - conflicts);
+        systems[i]->set_concurrent_systems(concurrent);
+    }
+
     std::vector<tf::Task> tasks(num_nodes);
     for (size_t i = 0; i < num_nodes; ++i) {
-        tasks[i] = systems_graph.emplace(
-            [this, i]() { systems[i]->execute(get_engine()); });
+        tasks[i] = systems_graph.emplace([this, i](tf::Subflow& subflow) {
+            systems[i]->execute(get_engine(), subflow);
+        });
     }
 
     for (size_t i = 0; i < num_nodes; ++i) {
