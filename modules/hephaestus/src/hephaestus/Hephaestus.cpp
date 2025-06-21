@@ -22,7 +22,6 @@ Hephaestus::Hephaestus(core::IEngine& engine)
 
 auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
 
-// Create all dendency graphs and taskflow shit here
 auto Hephaestus::post_start() -> void { build_systems_dependency_graph(); }
 
 auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
@@ -38,6 +37,7 @@ auto Hephaestus::tick() -> void {
     }
 
     //
+    // TODO:
     // Destroy queued entities
 }
 auto Hephaestus::get_tick_rate() const -> unsigned { return 1; }
