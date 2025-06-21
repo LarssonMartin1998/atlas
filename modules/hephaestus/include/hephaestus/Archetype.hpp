@@ -44,37 +44,31 @@ class Archetype final {
         requires RValueArg<ComponentType>;
 
     std::vector<Entity> entities;
-    std::unordered_map<std::type_index, std::unique_ptr<IComponentStorage>>
-        component_storages;
+    std::unordered_map<std::type_index, std::unique_ptr<IComponentStorage>> component_storages;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
-auto Archetype::create_entity(Entity entity, ComponentTypes&&... components)
-    -> void {
+auto Archetype::create_entity(Entity entity, ComponentTypes&&... components) -> void {
     entities.emplace_back(entity);
-    (add_to_component_storage<ComponentTypes>(
-         std::forward<ComponentTypes>(components)),
-     ...);
+    (add_to_component_storage<ComponentTypes>(std::forward<ComponentTypes>(components)), ...);
 }
 
 template <AllTypeOfComponent... ComponentTypes>
 auto Archetype::get_entity_tuples() const -> decltype(auto) {
-    return std::views::iota(std::size_t{0}, entities.size()) |
-           std::views::transform([this](const auto& index) {
-               return std::tuple<ComponentTypes&...>{
-                   get_components<ComponentTypes>()[index]...};
-           });
+    return std::views::iota(std::size_t{0}, entities.size())
+           | std::views::transform([this](const auto& index) {
+                 return std::tuple<ComponentTypes&...>{get_components<ComponentTypes>()[index]...};
+             });
 }
 
 template <TypeOfComponent ComponentType>
-[[nodiscard]] auto Archetype::get_components() const
-    -> std::vector<ComponentType>& {
+[[nodiscard]] auto Archetype::get_components() const -> std::vector<ComponentType>& {
     const auto component_type = std::type_index(typeid(ComponentType));
-    assert(component_storages.contains(component_type) &&
-           "Component type not found in archetype");
+    assert(component_storages.contains(component_type) && "Component type not found in archetype");
 
     return static_cast<ComponentStorage<ComponentType>*>(
-               component_storages.at(component_type).get())
+               component_storages.at(component_type).get()
+    )
         ->components;
 }
 
@@ -85,11 +79,13 @@ auto Archetype::add_to_component_storage(ComponentType&& component) -> void
     const auto type_index = std::type_index(typeid(ComponentType));
     if (!component_storages.contains(type_index)) {
         component_storages.insert(
-            {type_index, std::make_unique<ComponentStorage<ComponentType>>()});
+            {type_index, std::make_unique<ComponentStorage<ComponentType>>()}
+        );
     }
 
-    static_cast<ComponentStorage<ComponentType>&>(
-        *component_storages[type_index].get())
+    static_cast<ComponentStorage<ComponentType>&>(*component_storages[type_index].get())
         .components.emplace_back(std::forward<ComponentType>(component));
+
+    ComponentType::version_counter++;
 }
 } // namespace atlas::hephaestus

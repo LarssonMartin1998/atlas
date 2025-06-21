@@ -1,5 +1,7 @@
 #pragma once
 
+#include <taskflow/taskflow.hpp>
+
 namespace atlas::core {
 class IEngine;
 } // namespace atlas::core
@@ -15,7 +17,8 @@ class SystemBase {
     SystemBase(SystemBase&&) = delete;
     auto operator=(SystemBase&&) -> SystemBase& = delete;
 
-    virtual auto execute(const core::IEngine& engine) -> void = 0;
+    virtual auto set_concurrent_systems(std::size_t estimate) -> void = 0;
+    virtual auto execute(const core::IEngine& engine, tf::Subflow& subflow) -> void = 0;
 
   protected:
     SystemBase() = default;

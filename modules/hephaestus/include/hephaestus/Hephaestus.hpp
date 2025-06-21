@@ -1,9 +1,13 @@
 #pragma once
 
-#include <algorithm>
+#include <optional>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
+#include <taskflow/taskflow.hpp>
+
+#include "core/IEngine.hpp"
 #include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include "hephaestus/Archetype.hpp"
@@ -15,21 +19,31 @@
 #include "hephaestus/Utils.hpp"
 
 namespace atlas::hephaestus {
-class Hephaestus;
-}
+template <typename T>
+struct Debug;
 
-namespace atlas::hephaestus {
+template <typename... Ts>
+struct Debugs;
+
+struct SystemNode {
+    std::vector<std::type_index> component_dependencies;
+    std::vector<std::reference_wrapper<const std::vector<std::type_index>>> affected_archetypes;
+};
+
 class Hephaestus final : public core::Module, public core::ITickable {
   public:
     explicit Hephaestus(core::IEngine& engine);
 
     auto start() -> void override;
+    auto post_start() -> void override;
+
     auto shutdown() -> void override;
 
     auto tick() -> void override;
     [[nodiscard]] auto get_tick_rate() const -> unsigned override;
 
-    template <typename Func> auto create_system(Func&& func) -> void;
+    template <typename Func>
+    auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(ComponentTypes&&... components) -> void;
@@ -37,18 +51,23 @@ class Hephaestus final : public core::Module, public core::ITickable {
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
+    auto build_systems_dependency_graph() -> void;
+
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
     ArchetypeMap archetypes;
+
+    std::vector<std::function<void()>> creation_queue;
+    std::vector<std::function<void()>> destroy_queue;
+    std::optional<std::vector<SystemNode>> system_nodes = std::vector<SystemNode>{};
+
+    tf::Taskflow systems_graph;
+    tf::Executor systems_executor;
 
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
     // pass the lambda which will be used as the system function, the rest is
     // deduced and handled.
-    //
-    // TODO: This can later be used to improve the API for creating entities,
-    // letting the user only pass the actual created components with or without
-    // values, and let this deduce it and create archetypes from it.
 
     // A utility to pull out parameter types from a a callable.
     template <typename T>
@@ -61,66 +80,87 @@ class Hephaestus final : public core::Module, public core::ITickable {
 
     // Now the partial specialization for a non-generic, const lambda
     // with exactly two parameters.
-    template <typename ClassType, typename ReturnType, typename EngineParam,
-              typename QueryParam>
-
-    struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, QueryParam)
-                              const> {
+    template <typename ClassType, typename ReturnType, typename EngineParam, typename TupleParam>
+    struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, TupleParam) const> {
         using EngineType = std::decay_t<EngineParam>;
-        using QueryType = std::decay_t<QueryParam>;
+        using TupleType = std::decay_t<TupleParam>;
     };
 
-    // extracts the pack from `Query<Components...>`
-    template <typename T> struct QueryTraits; // primary template, no definition
+    template <typename T>
+    struct TupleElements;
 
-    // partial specialization
-    template <AllTypeOfComponent... Components>
-    struct QueryTraits<Query<Components...>> {
-        using ComponentTuple = std::tuple<Components...>;
+    template <typename... Ts>
+    struct TupleElements<std::tuple<Ts...>> {
+        template <template <typename...> class Template>
+        using Apply = Template<std::remove_reference_t<Ts>...>;
+
+        static auto make_signature() {
+            return make_component_type_signature<std::remove_reference_t<Ts>...>();
+        }
     };
 };
 
-template <typename Func> auto Hephaestus::create_system(Func&& func) -> void {
+template <typename Func>
+auto Hephaestus::create_system(Func&& func) -> void {
+    const auto init_status = get_engine().get_engine_init_status();
+    assert(
+        init_status == core::EngineInitStatus::RunningStart
+        && "Cannot create systems after startup."
+    );
+    assert(
+        system_nodes != std::nullopt
+        && "Trying to create a system after the system_nodes have been reset."
+    );
+
     using Traits = FunctionTraits<std::decay_t<Func>>;
-    using QueryType =
-        typename Traits::QueryType; // e.g. Query<Transform, Velocity>
-    using QueryTraits = QueryTraits<QueryType>;
-    using CompTuple =
-        typename QueryTraits::ComponentTuple; // std::tuple<Transform,
+    using TupleType = typename Traits::TupleType; // e.g. std::tuple<Transform&, Velocity&>
+    using Components = TupleElements<TupleType>;
+    using SystemType = typename Components::template Apply<System>;
 
-    // "expand" that tuple to get ComponentTypes...
-    // So we can do: System<ComponentTypes...>
-    std::apply(
-        [&](auto... dummy) {
-            // dummy are placeholders of type components types
-            // But they are all value-initialized (like Transform(),
-            // Velocity()). Only need the *types*:
-            using SystemType = System<std::decay_t<decltype(dummy)>...>;
+    auto signature = Components::make_signature();
+    system_nodes->emplace_back(
+        SystemNode{
+            .component_dependencies = signature,
+        }
+    );
 
-            auto new_system = std::make_unique<SystemType>(
-                std::forward<Func>(func), archetypes,
-                make_component_type_signature<
-                    std::decay_t<decltype(dummy)>...>());
+    auto new_system = std::make_unique<SystemType>(
+        std::forward<Func>(func),
+        archetypes,
+        std::move(signature)
+    );
 
-            systems.emplace_back(std::move(new_system));
-        },
-        CompTuple{});
+    systems.emplace_back(std::move(new_system));
 }
 
+// No entities are created on the fly. We enqueue all of it into a collection
+// which is iterated and constructs all entities in the begining of the next
+// frame.
 template <AllTypeOfComponent... ComponentTypes>
 auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
-    const auto entity_id = generate_unique_entity_id();
-    const auto signature = make_component_type_signature<ComponentTypes...>();
+    auto components_tuple = std::make_tuple(std::forward<ComponentTypes>(components)...);
 
-    auto& archetype = [this, signature]() -> ArchetypePtr& {
-        if (!archetypes.contains(signature)) {
-            archetypes.emplace(signature, std::make_unique<Archetype>());
-        }
+    creation_queue.emplace_back([this, data = std::move(components_tuple)]() mutable {
+        const auto entity_id = generate_unique_entity_id();
+        const auto signature = make_component_type_signature<ComponentTypes...>();
 
-        return archetypes[signature];
-    }();
+        auto& archetype = [this, &signature]() -> ArchetypePtr& {
+            if (!archetypes.contains(signature)) {
+                archetypes.emplace(signature, std::make_unique<Archetype>());
+            }
 
-    archetype.get()->template create_entity<ComponentTypes...>(
-        entity_id, std::forward<ComponentTypes>(components)...);
+            return archetypes[signature];
+        }();
+
+        std::apply(
+            [&](auto&&... unpacked) {
+                archetype->template create_entity<ComponentTypes...>(
+                    entity_id,
+                    std::move(unpacked)...
+                );
+            },
+            data
+        );
+    });
 }
 } // namespace atlas::hephaestus

@@ -8,5 +8,7 @@ auto Game::get_engine() const -> IEngine& {
     return *engine;
 }
 
-auto Game::set_engine(IEngine& engine_ref) -> void { engine = &engine_ref; }
+auto Game::set_engine(IEngine& engine_ref) -> void {
+    engine = &engine_ref;
+}
 } // namespace atlas::core

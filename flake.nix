@@ -23,6 +23,25 @@
 
         pname = "atlas";
         version = "0.1.0";
+
+        getBuildInputs =
+          pkgs: with pkgs; [
+            vulkan-headers
+            vulkan-loader
+            glfw
+            glm
+            stb
+            taskflow
+          ];
+
+        getNativeBuildInputs =
+          pkgs: with pkgs; [
+            llvmPackages_20.clang-tools
+            ninja
+            cmake
+            gtest
+            pkg-config
+          ];
       in
       {
         packages.atlas = stdenv.mkDerivation {
@@ -30,24 +49,8 @@
           version = version;
           src = ./.;
 
-          buildInputs =
-            with pkgs;
-            [
-              vulkan-headers
-              vulkan-loader
-              glfw
-              glm
-              stb
-            ]
-            ++ lib.optional stdenv.isDarwin [ moltenvk ];
-
-          nativeBuildInputs = with pkgs; [
-            llvmPackages_20.clang-tools
-            ninja
-            cmake
-            gtest
-            pkg-config
-          ];
+          buildInputs = getBuildInputs pkgs ++ pkgs.lib.optional stdenv.isDarwin [ pkgs.moltenvk ];
+          nativeBuildInputs = getNativeBuildInputs pkgs;
 
           cmakeFlags = [
             "-DCMAKE_BUILD_TYPE=Release"
@@ -63,6 +66,10 @@
           checkPhase = ''
             ctest --output-on-failure
           '';
+
+          shellHook = ''
+            export CXXFLAGS="$NIX_CFLAGS_COMPILE"
+          '';
         };
 
         packages.atlas-windows = xstdenv.mkDerivation {
@@ -70,20 +77,8 @@
           version = version;
           src = ./.;
 
-          buildInputs = with pkgsCross; [
-            vulkan-headers
-            vulkan-loader
-            glfw
-            glm
-            stb
-          ];
-
-          nativeBuildInputs = with pkgs; [
-            llvmPackages_20.clang-tools
-            ninja
-            cmake
-            pkg-config
-          ];
+          buildInputs = getBuildInputs pkgsCross;
+          nativeBuildInputs = getNativeBuildInputs pkgs;
 
           cmakeFlags = [
             "-DCMAKE_BUILD_TYPE=Release"
@@ -92,14 +87,14 @@
           ];
         };
 
+        shellHook = ''
+          export CXXFLAGS="$NIX_CFLAGS_COMPILE";
+        '';
+
         # Expose the entire source for the package so that it can be added as a cmake subdirectory in game projects using atlas and nix flakes to build.
         src = ./.;
 
         packages.default = self.packages.${system}.atlas;
-
-        shellHook = ''
-          export CXXFLAGS="$NIX_CFLAGS_COMPILE";
-        '';
       }
     );
 }
