@@ -13,7 +13,8 @@
 #include "core/time/EngineClock.hpp"
 
 namespace atlas::core {
-template <TypeOfGame G> class Engine final : public IEngine {
+template <TypeOfGame G>
+class Engine final : public IEngine {
   public:
     Engine() = default;
     ~Engine() override;
@@ -29,12 +30,10 @@ template <TypeOfGame G> class Engine final : public IEngine {
     [[nodiscard]] auto get_game() -> IGame& override;
 
     [[nodiscard]] auto get_clock() const -> const IEngineClock& override;
-    [[nodiscard]] auto get_engine_init_status() const
-        -> EngineInitStatus override;
+    [[nodiscard]] auto get_engine_init_status() const -> EngineInitStatus override;
 
   protected:
-    [[nodiscard]] auto get_module_impl(std::type_index module) const
-        -> IModule* override;
+    [[nodiscard]] auto get_module_impl(std::type_index module) const -> IModule* override;
 
   private:
     auto tick_root() -> void;
@@ -49,7 +48,8 @@ template <TypeOfGame G> class Engine final : public IEngine {
     EngineInitStatus init_status = EngineInitStatus::NotInitialized;
 };
 
-template <TypeOfGame G> Engine<G>::~Engine() {
+template <TypeOfGame G>
+Engine<G>::~Engine() {
     game.shutdown();
 
     for (auto& [module_type, module] : modules) {
@@ -59,7 +59,8 @@ template <TypeOfGame G> Engine<G>::~Engine() {
     std::println("Engine destroyed");
 }
 
-template <TypeOfGame G> auto Engine<G>::run() -> void {
+template <TypeOfGame G>
+auto Engine<G>::run() -> void {
     std::println("Engine::run()");
 
     game.set_engine(*this);
@@ -115,7 +116,10 @@ template <TypeOfGame G> auto Engine<G>::run() -> void {
     // }
 }
 
-template <TypeOfGame G> auto Engine<G>::get_game() -> IGame& { return game; }
+template <TypeOfGame G>
+auto Engine<G>::get_game() -> IGame& {
+    return game;
+}
 
 template <TypeOfGame G>
 auto Engine<G>::get_engine_init_status() const -> EngineInitStatus {
@@ -134,7 +138,8 @@ auto Engine<G>::get_clock() const -> const IEngineClock& {
     return clock;
 }
 
-template <TypeOfGame G> auto Engine<G>::tick_root() -> void {
+template <TypeOfGame G>
+auto Engine<G>::tick_root() -> void {
     for (auto* module : ticking_modules) {
         module->tick();
     }

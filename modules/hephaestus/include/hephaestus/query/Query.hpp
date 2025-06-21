@@ -9,10 +9,10 @@
 #include "hephaestus/query/QueryComponentsPipeline.hpp"
 
 namespace atlas::hephaestus {
-template <AllTypeOfComponent... ComponentTypes> class Query final {
+template <AllTypeOfComponent... ComponentTypes>
+class Query final {
   public:
-    Query(const ArchetypeMap& archetypes,
-          std::vector<std::type_index>&& component_types)
+    Query(const ArchetypeMap& archetypes, std::vector<std::type_index>&& component_types)
         : context{archetypes, std::move(component_types)} {
         std::println("Query Constructor");
     }
@@ -33,10 +33,8 @@ template <AllTypeOfComponent... ComponentTypes> class Query final {
     inline auto get() const -> ComponentsVector&;
 
   private:
-    [[nodiscard]] inline auto
-    is_cache_dirty(const std::uint64_t& cumsum_version) const -> bool;
-    [[nodiscard]] inline auto calc_components_cumsum_version() const
-        -> std::uint64_t;
+    [[nodiscard]] inline auto is_cache_dirty(const std::uint64_t& cumsum_version) const -> bool;
+    [[nodiscard]] inline auto calc_components_cumsum_version() const -> std::uint64_t;
 
     mutable std::uint64_t last_cache_cumsum_version{};
     mutable std::optional<ComponentsVector> cache;
@@ -46,7 +44,8 @@ template <AllTypeOfComponent... ComponentTypes> class Query final {
 
 template <AllTypeOfComponent... ComponentTypes>
 [[nodiscard]] inline auto Query<ComponentTypes...>::is_cache_dirty(
-    const std::uint64_t& cumsum_version) const -> bool {
+    const std::uint64_t& cumsum_version
+) const -> bool {
 
     if (!cache.has_value()) {
         return true;
@@ -60,19 +59,19 @@ template <AllTypeOfComponent... ComponentTypes>
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-[[nodiscard]] inline auto
-Query<ComponentTypes...>::calc_components_cumsum_version() const
+[[nodiscard]] inline auto Query<ComponentTypes...>::calc_components_cumsum_version() const
     -> std::uint64_t {
     return (0ULL + ... + Component<ComponentTypes>::get_version());
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-[[nodiscard]] inline auto Query<ComponentTypes...>::get() const
-    -> ComponentsVector& {
+[[nodiscard]] inline auto Query<ComponentTypes...>::get() const -> ComponentsVector& {
     const auto cumsum_version = calc_components_cumsum_version();
     if (is_cache_dirty(cumsum_version)) {
         auto pipeline = build_pipeline<ComponentTypes...>(
-            context.archetypes, context.component_types);
+            context.archetypes,
+            context.component_types
+        );
 
         // We evaluate the pipeline and collect it into a vector.
         // This costs one iteration over the data, but enables size storage and

@@ -7,4 +7,6 @@ class TestEngine : public ::testing::Test {
     void TearDown() override {}
 };
 
-TEST_F(TestEngine, ExampleTest) { EXPECT_TRUE(true); }
+TEST_F(TestEngine, ExampleTest) {
+    EXPECT_TRUE(true);
+}

@@ -1,8 +1,10 @@
 #include "hephaestus/Utils.hpp"
 
 namespace atlas::hephaestus {
-auto compare_signatures(const std::vector<std::type_index>& lhs,
-                        const std::vector<std::type_index>& rhs) -> bool {
+auto compare_signatures(
+    const std::vector<std::type_index>& lhs,
+    const std::vector<std::type_index>& rhs
+) -> bool {
     if (lhs.size() != rhs.size()) {
         return false;
     }
@@ -11,9 +13,10 @@ auto compare_signatures(const std::vector<std::type_index>& lhs,
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-auto are_signatures_overlapping(const std::vector<std::type_index>& lhs,
-                                const std::vector<std::type_index>& rhs)
-    -> bool {
+auto are_signatures_overlapping(
+    const std::vector<std::type_index>& lhs,
+    const std::vector<std::type_index>& rhs
+) -> bool {
     size_t lhs_idx = 0;
     size_t rhs_idx = 0;
 

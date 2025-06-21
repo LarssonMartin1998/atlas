@@ -40,14 +40,12 @@ class IEngine {
     template <TypeOfModule T>
     [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
 
-    [[nodiscard]] virtual auto get_engine_init_status() const
-        -> EngineInitStatus = 0;
+    [[nodiscard]] virtual auto get_engine_init_status() const -> EngineInitStatus = 0;
 
   protected:
     IEngine() = default;
 
-    [[nodiscard]] virtual auto get_module_impl(std::type_index module) const
-        -> IModule* = 0;
+    [[nodiscard]] virtual auto get_module_impl(std::type_index module) const -> IModule* = 0;
 }; // namespace atlas::core
 
 template <TypeOfModule T>

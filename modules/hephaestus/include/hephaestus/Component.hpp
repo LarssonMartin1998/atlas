@@ -10,7 +10,8 @@ namespace atlas::hephaestus {
 // A workaround to get around this limitation is the use of RValueArg concept
 // which can be found in hephaestus/Concepts.hpp. We require that when
 // constructing components in the component storage in the Archetype.
-template <typename Derived> class Component {
+template <typename Derived>
+class Component {
   public:
     [[nodiscard]] auto static get_version() -> const std::uint64_t& {
         return version_counter;

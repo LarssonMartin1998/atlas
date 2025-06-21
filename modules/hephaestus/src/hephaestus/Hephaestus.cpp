@@ -8,23 +8,30 @@
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine)
-    : core::Module{engine},
-      // Might want to reserve some threads for other tasks such as rendering,
-      // physics and other stuff.
-      // This is OK for now, but we should handle this in a centralized way
-      // later on to make sure that we don't have too many threads.
-      systems_executor(std::thread::hardware_concurrency()) {
+    : core::Module{engine}
+    ,
+    // Might want to reserve some threads for other tasks such as rendering,
+    // physics and other stuff.
+    // This is OK for now, but we should handle this in a centralized way
+    // later on to make sure that we don't have too many threads.
+    systems_executor(std::thread::hardware_concurrency()) {
     constexpr auto queue_buffert = 100;
     creation_queue.reserve(queue_buffert);
     destroy_queue.reserve(queue_buffert);
     std::println("Hephaestus Constructor");
 }
 
-auto Hephaestus::start() -> void { std::println("Hephaestus::start()"); }
+auto Hephaestus::start() -> void {
+    std::println("Hephaestus::start()");
+}
 
-auto Hephaestus::post_start() -> void { build_systems_dependency_graph(); }
+auto Hephaestus::post_start() -> void {
+    build_systems_dependency_graph();
+}
 
-auto Hephaestus::shutdown() -> void { std::println("Hephaestus::shutdown()"); }
+auto Hephaestus::shutdown() -> void {
+    std::println("Hephaestus::shutdown()");
+}
 
 auto Hephaestus::tick() -> void {
     for (auto& creation : creation_queue) {
@@ -40,7 +47,9 @@ auto Hephaestus::tick() -> void {
     // TODO:
     // Destroy queued entities
 }
-auto Hephaestus::get_tick_rate() const -> unsigned { return 1; }
+auto Hephaestus::get_tick_rate() const -> unsigned {
+    return 1;
+}
 
 auto Hephaestus::generate_unique_entity_id() -> Entity {
     static Entity next_entity_id = 0;
@@ -49,8 +58,9 @@ auto Hephaestus::generate_unique_entity_id() -> Entity {
 
 auto Hephaestus::build_systems_dependency_graph() -> void {
     assert(
-        system_nodes != std::nullopt &&
-        "system_nodes has been reset before the dependency_graph was built.");
+        system_nodes != std::nullopt
+        && "system_nodes has been reset before the dependency_graph was built."
+    );
 
     const auto num_nodes = (*system_nodes).size();
     if (num_nodes == 0) {
@@ -65,18 +75,15 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     for (auto& node : *system_nodes) {
-        auto filtered = filter_archetypes_to_signature(
-            archetypes, node.component_dependencies);
+        auto filtered = filter_archetypes_to_signature(archetypes, node.component_dependencies);
         node.affected_archetypes.reserve(archetypes.size());
         for (const auto& [idx, _] : filtered) {
             node.affected_archetypes.emplace_back(std::ref(idx));
         }
     }
 
-    const auto are_nodes_conflicting = [](const SystemNode& node,
-                                          const SystemNode& other) {
-        if (are_signatures_overlapping(node.component_dependencies,
-                                       other.component_dependencies)) {
+    const auto are_nodes_conflicting = [](const SystemNode& node, const SystemNode& other) {
+        if (are_signatures_overlapping(node.component_dependencies, other.component_dependencies)) {
             return true;
         }
 

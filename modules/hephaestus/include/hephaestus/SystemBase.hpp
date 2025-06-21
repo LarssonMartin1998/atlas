@@ -18,8 +18,7 @@ class SystemBase {
     auto operator=(SystemBase&&) -> SystemBase& = delete;
 
     virtual auto set_concurrent_systems(std::size_t estimate) -> void = 0;
-    virtual auto execute(const core::IEngine& engine, tf::Subflow& subflow)
-        -> void = 0;
+    virtual auto execute(const core::IEngine& engine, tf::Subflow& subflow) -> void = 0;
 
   protected:
     SystemBase() = default;
