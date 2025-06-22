@@ -95,7 +95,8 @@ struct PerFrameData {
 };
 
 namespace atlas::iris {
-Iris::Iris(core::IEngine& engine) : core::Module(engine) {}
+Iris::Iris(core::IEngine& engine)
+    : core::Module(engine) {}
 
 auto Iris::start() -> void {
     std::println("Iris::start()");
@@ -118,8 +119,7 @@ auto Iris::start() -> void {
         glfwTerminate();
     }
 
-    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode,
-                                  int action, int mods) {
+    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
@@ -160,8 +160,7 @@ auto Iris::start() -> void {
 
     buffer_size = sizeof(PerFrameData);
     glCreateBuffers(1, &per_frame_data_buf);
-    glNamedBufferStorage(per_frame_data_buf, buffer_size, nullptr,
-                         GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(per_frame_data_buf, buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, per_frame_data_buf, 0, buffer_size);
 
     glEnable(GL_DEPTH_TEST);
@@ -212,10 +211,8 @@ auto Iris::tick() -> void {
 
     constexpr glm::vec3 clear_color(1.0F, 0.5F, 0.7F);
     glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0F);
-    constexpr auto unsigned_color_buffer_bit =
-        static_cast<unsigned>(GL_COLOR_BUFFER_BIT);
-    constexpr auto unsigned_depth_buffer_bit =
-        static_cast<unsigned>(GL_DEPTH_BUFFER_BIT);
+    constexpr auto unsigned_color_buffer_bit = static_cast<unsigned>(GL_COLOR_BUFFER_BIT);
+    constexpr auto unsigned_depth_buffer_bit = static_cast<unsigned>(GL_DEPTH_BUFFER_BIT);
     glClear(unsigned_color_buffer_bit | unsigned_depth_buffer_bit);
 
     const auto ratio = static_cast<float>(width) / static_cast<float>(height);
@@ -223,8 +220,7 @@ auto Iris::tick() -> void {
     const auto identity = glm::mat4(1.0F);
     const auto time = static_cast<float>(glfwGetTime());
     const auto rotation = glm::vec3(0.0F, 0.0F, -3.5F);
-    const auto matrix =
-        glm::rotate(glm::translate(identity, rotation), time, one);
+    const auto matrix = glm::rotate(glm::translate(identity, rotation), time, one);
     const auto perspective = glm::perspective(45.0F, ratio, 0.1F, 1000.0F);
 
     PerFrameData per_frame_data{
@@ -247,12 +243,14 @@ auto Iris::tick() -> void {
     glfwPollEvents();
 }
 
-auto Iris::get_tick_rate() const -> unsigned { return 1; }
+auto Iris::get_tick_rate() const -> unsigned {
+    return 1;
+}
 auto Iris::create_texture(std::string_view path) const -> Texture {
     int channels = 0;
     Texture texture;
-    const std::uint8_t* image =
-        stbi_load(path.data(), &texture.width, &texture.height, &channels, 3);
+    const std::uint8_t*
+        image = stbi_load(path.data(), &texture.width, &texture.height, &channels, 3);
 
     glCreateTextures(GL_TEXTURE_2D, 1, &texture.id);
     glTextureParameteri(texture.id, GL_TEXTURE_MAX_LEVEL, 0);
@@ -260,8 +258,17 @@ auto Iris::create_texture(std::string_view path) const -> Texture {
     glTextureParameteri(texture.id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureStorage2D(texture.id, 1, GL_RGB8, texture.width, texture.height);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTextureSubImage2D(texture.id, 0, 0, 0, texture.width, texture.height,
-                        GL_RGB, GL_UNSIGNED_BYTE, image);
+    glTextureSubImage2D(
+        texture.id,
+        0,
+        0,
+        0,
+        texture.width,
+        texture.height,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        image
+    );
     glBindTextures(0, 1, &texture.id);
     stbi_image_free((void*)image);
     return texture;
