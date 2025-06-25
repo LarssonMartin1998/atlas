@@ -15,9 +15,9 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     // This is OK for now, but we should handle this in a centralized way
     // later on to make sure that we don't have too many threads.
     systems_executor(std::thread::hardware_concurrency()) {
-    constexpr auto queue_buffert = 100;
-    creation_queue.reserve(queue_buffert);
-    destroy_queue.reserve(queue_buffert);
+    constexpr auto QUEUE_BUFFERT = 100;
+    creation_queue.reserve(QUEUE_BUFFERT);
+    destroy_queue.reserve(QUEUE_BUFFERT);
     std::println("Hephaestus Constructor");
 }
 
