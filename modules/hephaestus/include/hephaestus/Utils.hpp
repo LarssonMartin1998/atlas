@@ -45,16 +45,6 @@ auto make_component_access_signature() -> std::vector<ComponentAccess> {
     return accesses;
 }
 
-auto compare_signatures(
-    const std::vector<std::type_index>& lhs,
-    const std::vector<std::type_index>& rhs
-) -> bool;
-
-auto are_signatures_overlapping(
-    const std::vector<std::type_index>& lhs,
-    const std::vector<std::type_index>& rhs
-) -> bool;
-
 // New function to check access signature overlaps with const awareness
 auto are_access_signatures_overlapping(
     const std::vector<ComponentAccess>& lhs,

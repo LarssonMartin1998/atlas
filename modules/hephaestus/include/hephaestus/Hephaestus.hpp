@@ -28,7 +28,6 @@ struct Debugs;
 struct SystemNode {
     std::vector<std::type_index> component_dependencies;
     std::vector<ComponentAccess> component_access_dependencies; // New field for const-aware dependencies
-    std::vector<std::reference_wrapper<const std::vector<std::type_index>>> affected_archetypes;
 };
 
 class Hephaestus final : public core::Module, public core::ITickable {

@@ -1,6 +1,5 @@
 #include "hephaestus/Hephaestus.hpp"
 #include "core/IEngine.hpp"
-#include "hephaestus/query/QueryComponentsPipeline.hpp"
 
 #include <cstddef>
 #include <functional>
@@ -75,28 +74,13 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     for (auto& node : *system_nodes) {
-        auto filtered = filter_archetypes_to_signature(archetypes, node.component_dependencies);
-        node.affected_archetypes.reserve(archetypes.size());
-        for (const auto& [idx, _] : filtered) {
-            node.affected_archetypes.emplace_back(std::ref(idx));
-        }
+        // Note: affected_archetypes no longer needed for conflict detection
+        // Systems still query archetypes individually via their Query objects
     }
 
     const auto are_nodes_conflicting = [](const SystemNode& node, const SystemNode& other) {
         // Use const-aware access signature conflict detection
-        if (are_access_signatures_overlapping(node.component_access_dependencies, other.component_access_dependencies)) {
-            return true;
-        }
-
-        for (const auto& i : node.affected_archetypes) {
-            for (const auto& j : other.affected_archetypes) {
-                if (are_signatures_overlapping(i.get(), j.get())) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return are_access_signatures_overlapping(node.component_access_dependencies, other.component_access_dependencies);
     };
 
     for (size_t i = 0; i < num_nodes; ++i) {
