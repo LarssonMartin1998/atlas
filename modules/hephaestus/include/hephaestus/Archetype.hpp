@@ -4,7 +4,7 @@
 #include "hephaestus/Concepts.hpp"
 #include <cassert>
 #include <memory>
-#include <iostream>
+#include <print>
 #include <ranges>
 #include <typeindex>
 #include <unordered_map>

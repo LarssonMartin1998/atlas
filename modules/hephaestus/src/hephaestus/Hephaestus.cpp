@@ -4,7 +4,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <iostream>
+#include <print>
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine)
@@ -18,11 +18,11 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     constexpr auto QUEUE_BUFFERT = 100;
     creation_queue.reserve(QUEUE_BUFFERT);
     destroy_queue.reserve(QUEUE_BUFFERT);
-    std::cout << "Hephaestus Constructor\n";
+    std::println("Hephaestus Constructor");
 }
 
 auto Hephaestus::start() -> void {
-    std::cout << "Hephaestus::start()\n";
+    std::println("Hephaestus::start()");
 }
 
 auto Hephaestus::post_start() -> void {
@@ -30,7 +30,7 @@ auto Hephaestus::post_start() -> void {
 }
 
 auto Hephaestus::shutdown() -> void {
-    std::cout << "Hephaestus::shutdown()\n";
+    std::println("Hephaestus::shutdown()");
 }
 
 auto Hephaestus::tick() -> void {
@@ -83,8 +83,7 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     const auto are_nodes_conflicting = [](const SystemNode& node, const SystemNode& other) {
-        // Use the new const-aware signature comparison for component dependencies
-        if (are_access_signatures_overlapping(node.component_access_dependencies, other.component_access_dependencies)) {
+        if (are_signatures_overlapping(node.component_dependencies, other.component_dependencies)) {
             return true;
         }
 
