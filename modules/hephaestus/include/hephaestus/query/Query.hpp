@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <print>
+#include <iostream>
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
@@ -14,7 +14,7 @@ class Query final {
   public:
     Query(const ArchetypeMap& archetypes, std::vector<std::type_index>&& component_types)
         : context{archetypes, std::move(component_types)} {
-        std::println("Query Constructor");
+        std::cout << "Query Constructor\n";
     }
 
     Query(const Query&) = delete;
@@ -78,7 +78,10 @@ template <AllTypeOfComponent... ComponentTypes>
         // random access. This can be used to chink and parellize the execution
         // of the systems. And should result in better performance and
         // utilization.
-        ComponentsVector comp_vec = std::ranges::to<std::vector>(pipeline);
+        ComponentsVector comp_vec;
+        for (auto&& item : pipeline) {
+            comp_vec.push_back(std::move(item));
+        }
         cache.emplace(std::move(comp_vec));
         last_cache_cumsum_version = cumsum_version;
     }

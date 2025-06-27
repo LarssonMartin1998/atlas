@@ -4,7 +4,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <print>
+#include <iostream>
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine)
@@ -18,11 +18,11 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     constexpr auto QUEUE_BUFFERT = 100;
     creation_queue.reserve(QUEUE_BUFFERT);
     destroy_queue.reserve(QUEUE_BUFFERT);
-    std::println("Hephaestus Constructor");
+    std::cout << "Hephaestus Constructor\n";
 }
 
 auto Hephaestus::start() -> void {
-    std::println("Hephaestus::start()");
+    std::cout << "Hephaestus::start()\n";
 }
 
 auto Hephaestus::post_start() -> void {
@@ -30,7 +30,7 @@ auto Hephaestus::post_start() -> void {
 }
 
 auto Hephaestus::shutdown() -> void {
-    std::println("Hephaestus::shutdown()");
+    std::cout << "Hephaestus::shutdown()\n";
 }
 
 auto Hephaestus::tick() -> void {
