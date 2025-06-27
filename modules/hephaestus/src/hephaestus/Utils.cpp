@@ -34,4 +34,34 @@ auto are_signatures_overlapping(
 
     return false;
 }
+
+auto are_access_signatures_overlapping(
+    const std::vector<ComponentAccess>& lhs,
+    const std::vector<ComponentAccess>& rhs
+) -> bool {
+    size_t lhs_idx = 0;
+    size_t rhs_idx = 0;
+
+    while (lhs_idx < lhs.size() && rhs_idx < rhs.size()) {
+        const auto& lhs_access = lhs[lhs_idx];
+        const auto& rhs_access = rhs[rhs_idx];
+
+        if (lhs_access.type == rhs_access.type) {
+            // Same component type - check if there's a conflict
+            // Conflict only occurs if at least one access is non-const (write access)
+            if (!lhs_access.is_const || !rhs_access.is_const) {
+                return true;
+            }
+            // Both are const (read-only), no conflict
+            ++lhs_idx;
+            ++rhs_idx; 
+        } else if (lhs_access.type < rhs_access.type) {
+            ++lhs_idx;
+        } else {
+            ++rhs_idx;
+        }
+    }
+
+    return false;
+}
 } // namespace atlas::hephaestus

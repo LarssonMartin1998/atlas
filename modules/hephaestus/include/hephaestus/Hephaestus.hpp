@@ -27,6 +27,7 @@ struct Debugs;
 
 struct SystemNode {
     std::vector<std::type_index> component_dependencies;
+    std::vector<ComponentAccess> component_access_dependencies; // New field for const-aware dependencies
     std::vector<std::reference_wrapper<const std::vector<std::type_index>>> affected_archetypes;
 };
 
@@ -83,7 +84,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     template <typename ClassType, typename ReturnType, typename EngineParam, typename TupleParam>
     struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, TupleParam) const> {
         using EngineType = std::decay_t<EngineParam>;
-        using TupleType = std::decay_t<TupleParam>;
+        using TupleType = TupleParam; // Don't decay to preserve const information
     };
 
     template <typename T>
@@ -96,6 +97,11 @@ class Hephaestus final : public core::Module, public core::ITickable {
 
         static auto make_signature() {
             return make_component_type_signature<std::remove_reference_t<Ts>...>();
+        }
+
+        // New method to create const-aware signatures
+        static auto make_access_signature() {
+            return make_component_access_signature<Ts...>();
         }
     };
 };
@@ -118,9 +124,11 @@ auto Hephaestus::create_system(Func&& func) -> void {
     using SystemType = typename Components::template Apply<System>;
 
     auto signature = Components::make_signature();
+    auto access_signature = Components::make_access_signature();
     system_nodes->emplace_back(
         SystemNode{
             .component_dependencies = signature,
+            .component_access_dependencies = access_signature,
         }
     );
 
