@@ -12,7 +12,7 @@ Now systems can specify const access patterns:
 
 ```cpp
 // Read-only system - can run in parallel with other read-only systems
-hephaestus.create_system([](Engine& engine, const std::tuple<const Transform&, const Velocity&>& components) {
+hephaestus.create_system([](Engine& engine, std::tuple<const Transform&, const Velocity&>& components) {
     const auto& [transform, velocity] = components;
     // Only read data - no modifications
     render_object(transform.position, velocity.direction);

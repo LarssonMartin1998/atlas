@@ -83,8 +83,10 @@ class Hephaestus final : public core::Module, public core::ITickable {
     // with exactly two parameters.
     template <typename ClassType, typename ReturnType, typename EngineParam, typename TupleParam>
     struct FunctionTraits<ReturnType (ClassType::*)(EngineParam, TupleParam) const> {
+        static_assert(!std::is_const_v<std::remove_reference_t<TupleParam>>, 
+                     "Const tuples are not supported. Use std::tuple<const Component&, ...>& instead of const std::tuple<Component&, ...>&");
         using EngineType = std::decay_t<EngineParam>;
-        using TupleType = TupleParam; // Don't decay to preserve const information
+        using TupleType = std::remove_reference_t<TupleParam>; // Remove reference but keep component const-ness
     };
 
     template <typename T>
