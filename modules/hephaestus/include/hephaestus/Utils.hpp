@@ -41,6 +41,20 @@ auto are_access_signatures_overlapping(
     const std::vector<ComponentAccess>& rhs
 ) -> bool;
 
+// Extract basic type signature from access signature
+inline auto extract_component_types(const std::vector<ComponentAccess>& access_signature) -> std::vector<std::type_index> {
+    std::vector<std::type_index> types;
+    types.reserve(access_signature.size());
+    
+    for (const auto& access : access_signature) {
+        types.push_back(access.type);
+    }
+    
+    // Remove duplicates while preserving sorted order
+    types.erase(std::unique(types.begin(), types.end()), types.end());
+    return types;
+}
+
 template <AllTypeOfComponent... ComponentTypes>
 auto make_component_type_signature() -> std::vector<std::type_index> {
     auto type_indices = std::vector<std::type_index>{std::type_index(typeid(std::remove_cvref_t<ComponentTypes>))...};
