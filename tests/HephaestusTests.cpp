@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <atlas/core/Engine.hpp>
+#include <atlas/core/IGame.hpp>
 #include <hephaestus/Hephaestus.hpp>
 #include <hephaestus/Utils.hpp>
 
@@ -11,10 +12,19 @@ struct Position { float x, y; };
 struct Velocity { float dx, dy; };
 struct Health { int value; };
 
+// Mock game class for testing
+class TestGame : public atlas::core::IGame {
+public:
+    auto start() -> void override {}
+    auto shutdown() -> void override {}
+    auto set_engine(atlas::core::IEngine& engine_ref) -> void override {}
+    auto should_quit() const -> bool override { return false; }
+};
+
 class HephaestusIntegrationTest : public ::testing::Test {
 protected:
     void SetUp() override {
-        engine = std::make_unique<core::Engine>();
+        engine = std::make_unique<atlas::core::Engine<TestGame>>();
         engine->initialize();
         hephaestus = &engine->get_module<Hephaestus>();
     }
@@ -25,7 +35,7 @@ protected:
         }
     }
 
-    std::unique_ptr<core::Engine> engine;
+    std::unique_ptr<atlas::core::Engine<TestGame>> engine;
     Hephaestus* hephaestus = nullptr;
 };
 
@@ -82,7 +92,7 @@ TEST_F(HephaestusIntegrationTest, SystemCreationAndExecution) {
     int health_checker_runs = 0;
 
     // Create a physics system (writes to Position, reads Velocity)
-    hephaestus->create_system([&physics_runs](const core::IEngine& engine, std::tuple<Position&, const Velocity&>& components) {
+    hephaestus->create_system([&physics_runs](const atlas::core::IEngine& engine, std::tuple<Position&, const Velocity&>& components) {
         auto& [pos, vel] = components;
         pos.x += vel.dx;
         pos.y += vel.dy;
@@ -90,14 +100,14 @@ TEST_F(HephaestusIntegrationTest, SystemCreationAndExecution) {
     });
 
     // Create a renderer system (reads Position and Velocity)
-    hephaestus->create_system([&renderer_runs](const core::IEngine& engine, const std::tuple<const Position&, const Velocity&>& components) {
+    hephaestus->create_system([&renderer_runs](const atlas::core::IEngine& engine, const std::tuple<const Position&, const Velocity&>& components) {
         const auto& [pos, vel] = components;
         // Simulate rendering
         renderer_runs++;
     });
 
     // Create a health checker system (reads Health)
-    hephaestus->create_system([&health_checker_runs](const core::IEngine& engine, std::tuple<const Health&>& components) {
+    hephaestus->create_system([&health_checker_runs](const atlas::core::IEngine& engine, std::tuple<const Health&>& components) {
         const auto& [health] = components;
         // Simulate health checking
         health_checker_runs++;
@@ -126,19 +136,19 @@ TEST_F(HephaestusIntegrationTest, ParallelExecutionBenefits) {
     int logger_runs = 0;
 
     // Create multiple read-only systems that should be able to run in parallel
-    hephaestus->create_system([&audio_runs](const core::IEngine& engine, const std::tuple<const Position&>& components) {
+    hephaestus->create_system([&audio_runs](const atlas::core::IEngine& engine, const std::tuple<const Position&>& components) {
         const auto& [pos] = components;
         // Audio positioning
         audio_runs++;
     });
 
-    hephaestus->create_system([&ui_runs](const core::IEngine& engine, const std::tuple<const Position&, const Velocity&>& components) {
+    hephaestus->create_system([&ui_runs](const atlas::core::IEngine& engine, const std::tuple<const Position&, const Velocity&>& components) {
         const auto& [pos, vel] = components;
         // UI updates
         ui_runs++;
     });
 
-    hephaestus->create_system([&logger_runs](const core::IEngine& engine, const std::tuple<const Position&>& components) {
+    hephaestus->create_system([&logger_runs](const atlas::core::IEngine& engine, const std::tuple<const Position&>& components) {
         const auto& [pos] = components;
         // Logging
         logger_runs++;
@@ -182,7 +192,7 @@ TEST_F(HephaestusIntegrationTest, MixedConstNonConstExecution) {
     int damage_system_runs = 0;
 
     // System that reads health and modifies position (mixed access)
-    hephaestus->create_system([&damage_system_runs](const core::IEngine& engine, std::tuple<Position&, const Health&>& components) {
+    hephaestus->create_system([&damage_system_runs](const atlas::core::IEngine& engine, std::tuple<Position&, const Health&>& components) {
         auto& [pos, health] = components;
         if (health.value < 50) {
             pos.x += 10.0f; // Knockback effect
