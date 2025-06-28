@@ -41,4 +41,11 @@ auto are_access_signatures_overlapping(
     const std::vector<ComponentAccess>& rhs
 ) -> bool;
 
+template <AllTypeOfComponent... ComponentTypes>
+auto make_component_type_signature() -> std::vector<std::type_index> {
+    auto type_indices = std::vector<std::type_index>{std::type_index(typeid(std::remove_cvref_t<ComponentTypes>))...};
+    std::ranges::sort(type_indices);
+    return type_indices;
+}
+
 } // namespace atlas::hephaestus
