@@ -15,12 +15,12 @@ auto are_access_signatures_overlapping(
         if (lhs_access.type == rhs_access.type) {
             // Same component type - check if there's a conflict
             // Conflict only occurs if at least one access is non-const (write access)
-            if (!lhs_access.is_const || !rhs_access.is_const) {
+            if (!lhs_access.is_read_only || !rhs_access.is_read_only) {
                 return true;
             }
             // Both are const (read-only), no conflict
             ++lhs_idx;
-            ++rhs_idx; 
+            ++rhs_idx;
         } else if (lhs_access.type < rhs_access.type) {
             ++lhs_idx;
         } else {

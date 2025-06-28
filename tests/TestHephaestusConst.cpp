@@ -1,9 +1,10 @@
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <typeindex>
 #include <vector>
 
-#include "hephaestus/Utils.hpp"
 #include "hephaestus/Component.hpp"
+#include "hephaestus/Utils.hpp"
 
 namespace atlas::hephaestus {
 
@@ -21,7 +22,14 @@ struct Health : public Component<Health> {
 };
 
 class HephaestusConstTest : public ::testing::Test {
-protected:
+  public:
+    std::vector<ComponentAccess> non_const_pos_vel;
+    std::vector<ComponentAccess> const_pos_vel;
+    std::vector<ComponentAccess> mixed_const_pos_vel;
+    std::vector<ComponentAccess> non_const_health;
+    std::vector<ComponentAccess> const_health;
+
+  protected:
     void SetUp() override {
         // Create test component access signatures
         non_const_pos_vel = make_component_access_signature<Position&, Velocity&>();
@@ -30,12 +38,6 @@ protected:
         non_const_health = make_component_access_signature<Health&>();
         const_health = make_component_access_signature<const Health&>();
     }
-
-    std::vector<ComponentAccess> non_const_pos_vel;
-    std::vector<ComponentAccess> const_pos_vel;
-    std::vector<ComponentAccess> mixed_const_pos_vel;
-    std::vector<ComponentAccess> non_const_health;
-    std::vector<ComponentAccess> const_health;
 };
 
 // Test ComponentAccess structure
@@ -43,21 +45,21 @@ TEST_F(HephaestusConstTest, ComponentAccessStructure) {
     EXPECT_EQ(non_const_pos_vel.size(), 2);
     EXPECT_EQ(const_pos_vel.size(), 2);
     EXPECT_EQ(mixed_const_pos_vel.size(), 2);
-    
+
     // Check that const information is correctly preserved
     for (const auto& access : const_pos_vel) {
-        EXPECT_TRUE(access.is_const);
+        EXPECT_TRUE(access.is_read_only);
     }
-    
+
     for (const auto& access : non_const_pos_vel) {
-        EXPECT_FALSE(access.is_const);
+        EXPECT_FALSE(access.is_read_only);
     }
-    
+
     // Check mixed case
     bool found_const = false;
     bool found_non_const = false;
     for (const auto& access : mixed_const_pos_vel) {
-        if (access.is_const) {
+        if (access.is_read_only) {
             found_const = true;
         } else {
             found_non_const = true;
@@ -77,10 +79,10 @@ TEST_F(HephaestusConstTest, ConstOnlySystemsNoConflict) {
 TEST_F(HephaestusConstTest, WriteAccessConflicts) {
     // Non-const (write) vs const (read) - should conflict
     EXPECT_TRUE(are_access_signatures_overlapping(non_const_pos_vel, const_pos_vel));
-    
+
     // Non-const (write) vs non-const (write) - should conflict
     EXPECT_TRUE(are_access_signatures_overlapping(non_const_pos_vel, non_const_pos_vel));
-    
+
     // Mixed const/non-const vs const - should conflict (due to write component)
     EXPECT_TRUE(are_access_signatures_overlapping(mixed_const_pos_vel, const_pos_vel));
 }
@@ -95,7 +97,7 @@ TEST_F(HephaestusConstTest, NonOverlappingComponentsNoConflict) {
 // Test edge cases
 TEST_F(HephaestusConstTest, EdgeCases) {
     std::vector<ComponentAccess> empty;
-    
+
     // Empty vs anything should not conflict
     EXPECT_FALSE(are_access_signatures_overlapping(empty, const_pos_vel));
     EXPECT_FALSE(are_access_signatures_overlapping(const_pos_vel, empty));
@@ -106,22 +108,22 @@ TEST_F(HephaestusConstTest, EdgeCases) {
 TEST_F(HephaestusConstTest, SortingBehavior) {
     // Create unsorted signature
     std::vector<ComponentAccess> unsorted = {
-        {std::type_index(typeid(Velocity)), true},
-        {std::type_index(typeid(Position)), false},
-        {std::type_index(typeid(Position)), true}
+        {.type = std::type_index(typeid(Velocity)), .is_read_only = true},
+        {.type = std::type_index(typeid(Position)), .is_read_only = false},
+        {.type = std::type_index(typeid(Position)), .is_read_only = true}
     };
-    
-    std::sort(unsorted.begin(), unsorted.end());
-    
+
+    std::ranges::sort(unsorted);
+
     // Should be sorted by type first, then by const-ness (false < true)
     EXPECT_EQ(unsorted[0].type, std::type_index(typeid(Position)));
-    EXPECT_FALSE(unsorted[0].is_const);
-    
+    EXPECT_FALSE(unsorted[0].is_read_only);
+
     EXPECT_EQ(unsorted[1].type, std::type_index(typeid(Position)));
-    EXPECT_TRUE(unsorted[1].is_const);
-    
+    EXPECT_TRUE(unsorted[1].is_read_only);
+
     EXPECT_EQ(unsorted[2].type, std::type_index(typeid(Velocity)));
-    EXPECT_TRUE(unsorted[2].is_const);
+    EXPECT_TRUE(unsorted[2].is_read_only);
 }
 
 } // namespace atlas::hephaestus
