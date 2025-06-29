@@ -97,7 +97,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     template <typename... Ts>
     struct TupleElements<std::tuple<Ts...>> {
         template <template <typename...> class Template>
-        using Apply = Template<std::remove_reference_t<Ts>...>;
+        using Apply = Template<std::remove_cvref_t<Ts>...>; // Remove both const and ref
 
         static auto make_access_signature() {
             return make_component_access_signature<Ts...>();

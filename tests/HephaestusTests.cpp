@@ -28,16 +28,16 @@ class TestGame : public atlas::core::IGame {
 public:
     auto pre_start() -> void override {}
     auto start() -> void override {
-        auto& hephaestus = engine_ptr->get_module<Hephaestus>();
+        auto& hephaestus = engine_ptr->get_module<Hephaestus>().get();
         
         // Create some entities first
-        hephaestus.create_entity(Position{1.0f, 2.0f}, Velocity{0.5f, -0.5f});
-        hephaestus.create_entity(Position{3.0f, 4.0f}, Velocity{1.0f, 1.0f});
-        hephaestus.create_entity(Position{5.0f, 6.0f}, Health{100});
+        hephaestus.create_entity(Position{.x = 1.0f, .y = 2.0f}, Velocity{.dx = 0.5f, .dy = -0.5f});
+        hephaestus.create_entity(Position{.x = 3.0f, .y = 4.0f}, Velocity{.dx = 1.0f, .dy = 1.0f});
+        hephaestus.create_entity(Position{.x = 5.0f, .y = 6.0f}, Health{.value = 100});
 
         if (test_state) {
             // Create a physics system (writes to Position, reads Velocity)
-            hephaestus.create_system([](const atlas::core::IEngine& engine, std::tuple<Position&, const Velocity&>& components) {
+            hephaestus.create_system([](const atlas::core::IEngine& engine, std::tuple<Position&, const Velocity&> components) {
                 auto& [pos, vel] = components;
                 pos.x += vel.dx * 0.1f; // Small delta for testing
                 pos.y += vel.dy * 0.1f;
@@ -45,14 +45,14 @@ public:
             });
 
             // Create a renderer system (reads Position and Velocity)
-            hephaestus.create_system([](const atlas::core::IEngine& engine, const std::tuple<const Position&, const Velocity&>& components) {
+            hephaestus.create_system([](const atlas::core::IEngine& engine, std::tuple<const Position&, const Velocity&> components) {
                 const auto& [pos, vel] = components;
                 // Simulate rendering
                 test_state->renderer_runs++;
             });
 
             // Create a health checker system (reads Health)
-            hephaestus.create_system([](const atlas::core::IEngine& engine, std::tuple<const Health&>& components) {
+            hephaestus.create_system([](const atlas::core::IEngine& engine, std::tuple<const Health&> components) {
                 const auto& [health] = components;
                 // Simulate health checking
                 test_state->health_checker_runs++;
@@ -66,6 +66,9 @@ public:
     auto pre_shutdown() -> void override {}
     auto shutdown() -> void override {}
     auto post_shutdown() -> void override {}
+    auto get_engine() const -> atlas::core::IEngine& override { 
+        return *engine_ptr; 
+    }
     auto set_engine(atlas::core::IEngine& engine_ref) -> void override { 
         engine_ptr = &engine_ref; 
     }
