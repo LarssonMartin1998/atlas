@@ -17,7 +17,7 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     constexpr auto QUEUE_BUFFERT = 100;
     creation_queue.reserve(QUEUE_BUFFERT);
     destroy_queue.reserve(QUEUE_BUFFERT);
-    // std::println("Hephaestus Constructor"); // Temporarily commented
+    std::println("Hephaestus Constructor");
 }
 
 auto Hephaestus::start() -> void {
