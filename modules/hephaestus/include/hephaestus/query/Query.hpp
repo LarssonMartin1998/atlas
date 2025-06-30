@@ -12,7 +12,7 @@ namespace atlas::hephaestus {
 template <AllTypeOfComponent... ComponentTypes>
 class Query final {
   public:
-    Query(const ArchetypeMap& archetypes, std::vector<std::type_index>&& component_types)
+    Query(const ArchetypeMap& archetypes, std::vector<ComponentAccess> component_types)
         : context{archetypes, std::move(component_types)} {
         std::println("Query Constructor");
     }

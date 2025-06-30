@@ -128,18 +128,12 @@ auto Hephaestus::create_system(Func&& func) -> void {
     using SystemType = typename Components::template Apply<System>;
 
     auto access_signature = Components::make_access_signature();
-    auto component_types = extract_component_types(access_signature);
-    
-    system_nodes->emplace_back(
-        SystemNode{
-            .component_access_dependencies = access_signature,
-        }
-    );
+    system_nodes->emplace_back(access_signature);
 
     auto new_system = std::make_unique<SystemType>(
         std::forward<Func>(func),
         archetypes,
-        std::move(component_types)
+        std::move(access_signature)
     );
 
     systems.emplace_back(std::move(new_system));
