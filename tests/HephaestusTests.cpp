@@ -247,3 +247,179 @@ TEST(HephaestusIntegrationTest, ActualSystemCreationAndExecution) {
     // Clean up
     TEST_STATE = nullptr;
 }
+
+// Test class for the optimized signature system
+class HephaestusOptimizedSignatureTest : public ::testing::Test {
+protected:
+    void SetUp() override {}
+    void TearDown() override {}
+};
+
+TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureGeneration) {
+    using namespace atlas::hephaestus;
+    
+    // Test single component signature
+    auto pos_sig = make_component_signature<Position>();
+    auto vel_sig = make_component_signature<Velocity>();
+    auto health_sig = make_component_signature<Health>();
+    
+    // Signatures should be different
+    EXPECT_NE(pos_sig, vel_sig);
+    EXPECT_NE(vel_sig, health_sig);
+    EXPECT_NE(pos_sig, health_sig);
+    
+    // Test multiple component signature
+    auto pos_vel_sig = make_component_signature<Position, Velocity>();
+    auto vel_health_sig = make_component_signature<Velocity, Health>();
+    
+    // Combined signatures should be different from individual ones
+    EXPECT_NE(pos_vel_sig, pos_sig);
+    EXPECT_NE(pos_vel_sig, vel_sig);
+    EXPECT_NE(vel_health_sig, vel_sig);
+    EXPECT_NE(vel_health_sig, health_sig);
+    
+    // Combined signatures should be different from each other
+    EXPECT_NE(pos_vel_sig, vel_health_sig);
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureOperations) {
+    using namespace atlas::hephaestus;
+    
+    auto pos_sig = make_component_signature<Position>();
+    auto vel_sig = make_component_signature<Velocity>();
+    auto pos_vel_sig = make_component_signature<Position, Velocity>();
+    
+    // Test subset relationships
+    EXPECT_TRUE(pos_sig.is_subset_of(pos_vel_sig));
+    EXPECT_TRUE(vel_sig.is_subset_of(pos_vel_sig));
+    EXPECT_FALSE(pos_vel_sig.is_subset_of(pos_sig));
+    EXPECT_FALSE(pos_vel_sig.is_subset_of(vel_sig));
+    
+    // Test intersections
+    EXPECT_TRUE(pos_sig.intersects_with(pos_vel_sig));
+    EXPECT_TRUE(vel_sig.intersects_with(pos_vel_sig));
+    EXPECT_FALSE(pos_sig.intersects_with(vel_sig));
+    
+    // Test component counting
+    EXPECT_EQ(pos_sig.count_components(), 1);
+    EXPECT_EQ(vel_sig.count_components(), 1);
+    EXPECT_EQ(pos_vel_sig.count_components(), 2);
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureConsistency) {
+    using namespace atlas::hephaestus;
+    
+    // Test that order doesn't matter for signature generation
+    auto sig1 = make_component_signature<Position, Velocity>();
+    auto sig2 = make_component_signature<Velocity, Position>();
+    
+    EXPECT_EQ(sig1, sig2) << "Component signature should be order-independent";
+    
+    // Test that const/non-const doesn't affect signature
+    auto sig3 = make_component_signature<const Position, Velocity>();
+    auto sig4 = make_component_signature<Position, const Velocity>();
+    auto sig5 = make_component_signature<const Position, const Velocity>();
+    
+    EXPECT_EQ(sig1, sig3) << "const qualifiers should not affect signature";
+    EXPECT_EQ(sig1, sig4) << "const qualifiers should not affect signature";
+    EXPECT_EQ(sig1, sig5) << "const qualifiers should not affect signature";
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureHashPerformance) {
+    using namespace atlas::hephaestus;
+    
+    // Test that signature hashing is consistent
+    auto sig1 = make_component_signature<Position, Velocity>();
+    auto sig2 = make_component_signature<Position, Velocity>();
+    
+    ComponentSignatureHash hasher;
+    EXPECT_EQ(hasher(sig1), hasher(sig2)) << "Equal signatures should have equal hashes";
+    
+    // Test that different signatures have different hashes (basic collision test)
+    auto sig3 = make_component_signature<Position, Health>();
+    EXPECT_NE(hasher(sig1), hasher(sig3)) << "Different signatures should have different hashes";
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, OptimizedArchetypeMapCompatibility) {
+    using namespace atlas::hephaestus;
+    
+    // Test that OptimizedArchetypeMap can be created and used
+    OptimizedArchetypeMap map;
+    
+    auto sig1 = make_component_signature<Position>();
+    auto sig2 = make_component_signature<Position, Velocity>();
+    
+    // Test insertion and lookup
+    map[sig1] = std::make_unique<Archetype>();
+    map[sig2] = std::make_unique<Archetype>();
+    
+    EXPECT_EQ(map.size(), 2);
+    EXPECT_TRUE(map.contains(sig1));
+    EXPECT_TRUE(map.contains(sig2));
+    
+    // Test that different signatures map to different entries
+    auto sig3 = make_component_signature<Health>();
+    EXPECT_FALSE(map.contains(sig3));
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, PerformanceComparison) {
+    using namespace atlas::hephaestus;
+    using namespace std::chrono;
+    
+    const int NUM_ITERATIONS = 10000;
+    
+    // Test legacy signature system performance
+    auto start_legacy = high_resolution_clock::now();
+    for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        auto legacy_sig = make_component_type_signature<Position, Velocity, Health>();
+        TypeIndexVectorHash hasher;
+        volatile auto hash = hasher(legacy_sig); // volatile to prevent optimization
+        (void)hash; // Avoid unused variable warning
+    }
+    auto end_legacy = high_resolution_clock::now();
+    auto legacy_duration = duration_cast<microseconds>(end_legacy - start_legacy);
+    
+    // Test optimized signature system performance
+    auto start_optimized = high_resolution_clock::now();
+    for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        auto optimized_sig = make_component_signature<Position, Velocity, Health>();
+        ComponentSignatureHash hasher;
+        volatile auto hash = hasher(optimized_sig); // volatile to prevent optimization
+        (void)hash; // Avoid unused variable warning
+    }
+    auto end_optimized = high_resolution_clock::now();
+    auto optimized_duration = duration_cast<microseconds>(end_optimized - start_optimized);
+    
+    std::cout << "Legacy signature system: " << legacy_duration.count() << " microseconds\n";
+    std::cout << "Optimized signature system: " << optimized_duration.count() << " microseconds\n";
+    
+    // The optimized version should be significantly faster
+    // We expect at least 2x improvement, but allow for some variance
+    EXPECT_LT(optimized_duration.count() * 2, legacy_duration.count()) 
+        << "Optimized system should be at least 2x faster than legacy system";
+}
+
+TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
+    using namespace atlas::hephaestus;
+    
+    // Test memory footprint
+    auto legacy_sig = make_component_type_signature<Position, Velocity, Health>();
+    auto optimized_sig = make_component_signature<Position, Velocity, Health>();
+    
+    // Legacy signature uses a vector which has heap allocation
+    size_t legacy_size = sizeof(legacy_sig) + legacy_sig.size() * sizeof(std::type_index);
+    
+    // Optimized signature is just a single uint64_t
+    size_t optimized_size = sizeof(optimized_sig);
+    
+    std::cout << "Legacy signature memory footprint: " << legacy_size << " bytes\n";
+    std::cout << "Optimized signature memory footprint: " << optimized_size << " bytes\n";
+    
+    // The optimized version should use significantly less memory
+    EXPECT_LT(optimized_size, legacy_size) 
+        << "Optimized signature should use less memory than legacy signature";
+    
+    // For 3 components, we expect significant savings
+    EXPECT_LT(optimized_size * 3, legacy_size) 
+        << "Optimized signature should use at least 3x less memory";
+}
