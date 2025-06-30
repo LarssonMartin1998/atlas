@@ -423,3 +423,49 @@ TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
     EXPECT_LT(optimized_size * 3, legacy_size) 
         << "Optimized signature should use at least 3x less memory";
 }
+
+// Demonstration of complete drop-in replacement
+TEST_F(HephaestusOptimizedSignatureTest, DropInReplacementDemo) {
+    using namespace atlas::hephaestus;
+    
+    // This test demonstrates how the optimized system could be used as a complete drop-in replacement
+    // In a real integration, you would include "hephaestus/OptimizedECS.hpp" instead of the legacy headers
+    
+    // Create optimized archetype map
+    OptimizedArchetypeMap optimized_archetypes;
+    
+    // Use the optimized signature generation
+    auto entity_signature = make_component_signature<Position, Velocity>();
+    
+    // Add archetype to the map
+    optimized_archetypes[entity_signature] = std::make_unique<Archetype>();
+    
+    // Test lookup performance
+    EXPECT_TRUE(optimized_archetypes.contains(entity_signature));
+    EXPECT_EQ(optimized_archetypes.size(), 1);
+    
+    // Add more entities with different signatures
+    auto health_signature = make_component_signature<Position, Health>();
+    auto full_signature = make_component_signature<Position, Velocity, Health>();
+    
+    optimized_archetypes[health_signature] = std::make_unique<Archetype>();
+    optimized_archetypes[full_signature] = std::make_unique<Archetype>();
+    
+    EXPECT_EQ(optimized_archetypes.size(), 3);
+    EXPECT_TRUE(optimized_archetypes.contains(health_signature));
+    EXPECT_TRUE(optimized_archetypes.contains(full_signature));
+    
+    // Demonstrate signature operations
+    EXPECT_TRUE(entity_signature.is_subset_of(full_signature));
+    EXPECT_TRUE(health_signature.is_subset_of(full_signature));
+    EXPECT_TRUE(entity_signature.intersects_with(full_signature));
+    EXPECT_TRUE(entity_signature.intersects_with(health_signature)); // Both have Position component
+    
+    // Test signatures that don't intersect
+    auto velocity_only = make_component_signature<Velocity>();
+    auto health_only = make_component_signature<Health>();
+    EXPECT_FALSE(velocity_only.intersects_with(health_only)); // No shared components
+    
+    std::cout << "Drop-in replacement demo: Successfully managed " 
+              << optimized_archetypes.size() << " archetypes with optimized signatures\n";
+}
