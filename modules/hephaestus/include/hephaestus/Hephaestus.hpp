@@ -96,6 +96,11 @@ class Hephaestus final : public core::Module, public core::ITickable {
 
     template <typename... Ts>
     struct TupleElements<std::tuple<Ts...>> {
+        static_assert(
+            !HAS_DUPLICATE_COMPONENT_TYPE_V<Ts...>,
+            "A system cannot take the same component type twice (const or non-const)."
+        );
+
         template <template <typename...> class Template>
         using Apply = Template<std::remove_cvref_t<Ts>...>; // Remove both const and ref
 
@@ -145,6 +150,11 @@ auto Hephaestus::create_system(Func&& func) -> void {
 // frame.
 template <AllTypeOfComponent... ComponentTypes>
 auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
+    static_assert(
+        !HAS_DUPLICATE_COMPONENT_TYPE_V<ComponentTypes...>,
+        "A single entity cannot have the same component type twice (const or non-const)."
+    );
+
     auto components_tuple = std::make_tuple(std::forward<ComponentTypes>(components)...);
 
     creation_queue.emplace_back([this, data = std::move(components_tuple)]() mutable {

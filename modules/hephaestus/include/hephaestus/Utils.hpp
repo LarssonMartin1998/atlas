@@ -25,6 +25,18 @@ struct ComponentAccess {
     }
 };
 
+template <typename...>
+struct HasDuplicateComponentType : std::false_type {};
+
+template <typename T, typename... Rest>
+struct HasDuplicateComponentType<T, Rest...>
+    : std::bool_constant<
+          (std::is_same_v<std::decay_t<T>, std::decay_t<Rest>> || ...)
+          || HasDuplicateComponentType<Rest...>::value> {};
+
+template <typename... Ts>
+constexpr bool HAS_DUPLICATE_COMPONENT_TYPE_V = HasDuplicateComponentType<Ts...>::value;
+
 template <AllTypeOfComponent... ComponentTypes>
 auto make_component_access_signature() -> std::vector<ComponentAccess> {
     auto accesses = std::vector<ComponentAccess>{ComponentAccess{
