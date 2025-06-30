@@ -6,7 +6,10 @@ target_link_libraries(atlas_core PRIVATE atlas GTest::gtest_main)
 target_sources(
   atlas_core
   PRIVATE TestMain.cpp
-          HephaestusTests.cpp)
+          HephaestusTests.cpp
+          TimeTests.cpp
+          ModuleTests.cpp
+          EngineTests.cpp)
 
 include(GoogleTest)
 gtest_discover_tests(atlas_core)
