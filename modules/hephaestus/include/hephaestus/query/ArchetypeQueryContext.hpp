@@ -1,13 +1,14 @@
 #pragma once
 
 #include "hephaestus/ArchetypeMap.hpp"
+#include "hephaestus/Utils.hpp"
 #include <print>
 
 namespace atlas::hephaestus {
 struct ArchetypeQueryContext final {
     explicit ArchetypeQueryContext(
         const ArchetypeMap& archetypes,
-        std::vector<std::type_index>&& component_types
+        std::vector<ComponentAccess> component_types
     )
         : archetypes{archetypes}
         , component_types{std::move(component_types)} {
@@ -24,6 +25,6 @@ struct ArchetypeQueryContext final {
     ~ArchetypeQueryContext() = default;
 
     const ArchetypeMap& archetypes;
-    const std::vector<std::type_index> component_types;
+    const std::vector<ComponentAccess> component_types;
 };
 } // namespace atlas::hephaestus

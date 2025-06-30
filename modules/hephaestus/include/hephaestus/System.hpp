@@ -3,6 +3,7 @@
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
 #include "hephaestus/SystemBase.hpp"
+#include "hephaestus/Utils.hpp"
 #include "hephaestus/query/Query.hpp"
 #include <algorithm>
 #include <functional>
@@ -25,7 +26,7 @@ class System final : public SystemBase {
     explicit System(
         SystemFunc func,
         const ArchetypeMap& archetypes,
-        std::vector<std::type_index>&& component_types
+        std::vector<ComponentAccess> component_types
     )
         : func{std::move(func)}
         , query{archetypes, std::move(component_types)} {}
