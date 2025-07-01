@@ -106,14 +106,12 @@ public:
     
     auto tick() -> void override {
         tick_count++;
-        // Increment the game frame counter to control when to quit
-        if (auto* game = dynamic_cast<MockGame*>(&get_engine().get_game())) {
-            game->increment_frame();
-        }
+        // Note: Module should not directly manipulate game state
+        // This is for testing purposes only and is not recommended in production
     }
     
     auto get_tick_rate() const -> unsigned override {
-        return 60;
+        return 60; // Fixed rate for testing - note: tick_rate is deprecated
     }
     
     // Test state
@@ -200,11 +198,12 @@ TEST_F(EngineTest, EngineInitStatusProgression) {
     // Set to quit immediately to test init sequence
     mock_game->set_max_frames(0);
     
-    // Run and check status progression (this is hard to test in detail due to timing)
+    // Run and verify the engine executes properly
     engine.run();
     
-    // After run(), we should be back to some final state
-    // (The exact state depends on implementation details)
+    // After run(), engine should have executed without errors
+    // We can verify the game was properly handled
+    EXPECT_EQ(mock_game->get_frame_count(), 0); // Should have quit immediately
 }
 
 TEST_F(EngineTest, EngineMultipleFramesExecution) {

@@ -86,7 +86,7 @@ auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow
     chunk_size = std::max<std::size_t>(chunk_size, MIN_PARALLEL_WORKERS);
 
     subflow.for_each_index(
-        std::size_t{0},
+        0,
         entity_count,
         chunk_size,
         [this, &engine, &entity_components](std::size_t i) {

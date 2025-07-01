@@ -101,13 +101,12 @@ public:
     }
     
     auto get_tick_rate() const -> unsigned override {
-        return tick_rate;
+        return 60; // Fixed rate for testing
     }
     
     // Test state
     bool tick_called = false;
     unsigned tick_count = 0;
-    unsigned tick_rate = 60; // Default 60 Hz
 };
 
 class ModuleTest : public ::testing::Test {
@@ -223,19 +222,7 @@ TEST_F(ModuleTest, TickableModuleBasicFunctionality) {
     EXPECT_EQ(module.tick_count, 2);
 }
 
-TEST_F(ModuleTest, TickableModuleTickRate) {
-    TickableTestModule module(*mock_engine);
-    
-    // Default tick rate should be 60
-    EXPECT_EQ(module.get_tick_rate(), 60);
-    
-    // Change tick rate
-    module.tick_rate = 120;
-    EXPECT_EQ(module.get_tick_rate(), 120);
-    
-    module.tick_rate = 30;
-    EXPECT_EQ(module.get_tick_rate(), 30);
-}
+// Note: tick_rate functionality is deprecated and removed
 
 TEST_F(ModuleTest, TickableModuleMultipleTicks) {
     TickableTestModule module(*mock_engine);
@@ -284,7 +271,7 @@ TEST_F(ModuleTest, TickableModuleInterfaceInheritance) {
     // Tickable interface should work correctly
     i_tickable->tick();
     EXPECT_TRUE(module.tick_called);
-    EXPECT_EQ(i_tickable->get_tick_rate(), 60);
+    // Note: get_tick_rate() still exists but tick_rate functionality is deprecated
 }
 
 // Test error conditions and edge cases

@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <memory>
-#include <iostream>
+#include <print>
 #include <unordered_map>
 
 #include "core/Concepts.hpp"
@@ -56,12 +56,12 @@ Engine<G>::~Engine() {
         module->shutdown();
     }
 
-    std::cout << "Engine destroyed" << std::endl;
+    std::println("Engine destroyed");
 }
 
 template <TypeOfGame G>
 auto Engine<G>::run() -> void {
-    std::cout << "Engine::run()" << std::endl;
+    std::println("Engine::run()");
 
     game.set_engine(*this);
 
@@ -94,7 +94,7 @@ auto Engine<G>::run() -> void {
         num_frames++;
     }
 
-    std::cout << "Num frames: " << num_frames << std::endl;
+    std::println("Num frames: {}", num_frames);
 
     // const auto path = std::string("perf_stats/no_changes");
     // std::filesystem::create_directories(path);
@@ -108,10 +108,10 @@ auto Engine<G>::run() -> void {
     // {
     //     std::ofstream ofs(file_name);
     //     if (!ofs) {
-    //         std::cout << "Failed to open file: {}", file_name);
+    //         std::println("Failed to open file: {}", file_name);
     //     } else {
     //         ofs << num_frames << "\n";
-    //         std::cout << "Wrote {} frames to {}", num_frames, file_name);
+    //         std::println("Wrote {} frames to {}", num_frames, file_name);
     //     }
     // }
 }
