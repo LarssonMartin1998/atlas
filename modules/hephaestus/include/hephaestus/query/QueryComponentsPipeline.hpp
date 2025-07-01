@@ -11,10 +11,10 @@ namespace atlas::hephaestus {
 template <AllTypeOfComponent... ComponentTypes>
 auto filter_archetypes_to_signature(
     const ArchetypeMap& map,
-    const std::vector<ComponentAccess>& signature
+    const std::vector<ComponentAccess>& /* signature - unused, kept for API compatibility */
 ) {
-    // Convert ComponentAccess vector to ComponentSignature for comparison
-    const auto query_signature = component_access_to_signature(signature);
+    // Create ComponentSignature directly from template parameters
+    const auto query_signature = make_component_type_signature<ComponentTypes...>();
 
     return map | std::ranges::views::filter([query_signature](const auto& pair) {
                const auto& archetype_signature = pair.first;
