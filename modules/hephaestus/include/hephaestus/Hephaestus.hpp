@@ -54,7 +54,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
 
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
-    ArchetypeMap archetypes; // Keep legacy for backward compatibility
+    ArchetypeMap archetypes;
 
     std::vector<std::function<void()>> creation_queue;
     std::vector<std::function<void()>> destroy_queue;
@@ -153,7 +153,7 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
 
     creation_queue.emplace_back([this, data = std::move(components_tuple)]() mutable {
         const auto entity_id = generate_unique_entity_id();
-        const auto signature = make_component_type_signature<ComponentTypes...>(); // Keep legacy for compatibility
+        const auto signature = make_component_type_signature<ComponentTypes...>();
 
         auto& archetype = [this, &signature]() -> ArchetypePtr& {
             if (!archetypes.contains(signature)) {

@@ -55,34 +55,35 @@ public:
         return __builtin_popcountll(value_);
     }
 
+    constexpr auto empty() const -> bool {
+        return value_ == 0;
+    }
+
 private:
     ValueType value_ = 0;
 };
 
-// Component type ID generator using compile-time hash of type name
-namespace detail {
-    // Simple compile-time string hash using FNV-1a algorithm
-    constexpr auto hash_string(const char* str) -> std::uint64_t {
-        std::uint64_t hash = 14695981039346656037ULL; // FNV offset basis
-        while (*str) {
-            hash ^= static_cast<std::uint64_t>(*str++);
-            hash *= 1099511628211ULL; // FNV prime
-        }
-        return hash;
+// Simple compile-time string hash using FNV-1a algorithm
+constexpr auto hash_string(const char* str) -> std::uint64_t {
+    std::uint64_t hash = 14695981039346656037ULL; // FNV offset basis
+    while (*str) {
+        hash ^= static_cast<std::uint64_t>(*str++);
+        hash *= 1099511628211ULL; // FNV prime
     }
-    
-    // Extract position of first set bit (effectively log2 for powers of 2)
-    constexpr auto get_bit_position(std::uint64_t hash) -> std::uint8_t {
-        // Use a subset of hash bits to get a position in 0-63 range
-        return static_cast<std::uint8_t>(hash % 64);
-    }
+    return hash;
+}
+
+// Extract position of first set bit (effectively log2 for powers of 2)
+constexpr auto get_bit_position(std::uint64_t hash) -> std::uint8_t {
+    // Use a subset of hash bits to get a position in 0-63 range
+    return static_cast<std::uint8_t>(hash % 64);
 }
 
 // Get unique component type ID for a given component type
 template<typename T>
 constexpr auto get_component_type_id() -> std::uint8_t {
-    constexpr auto hash = detail::hash_string(__PRETTY_FUNCTION__);
-    return detail::get_bit_position(hash);
+    constexpr auto hash = hash_string(__PRETTY_FUNCTION__);
+    return get_bit_position(hash);
 }
 
 // Get component bitmask for a given component type
