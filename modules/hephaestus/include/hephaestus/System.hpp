@@ -26,10 +26,10 @@ class System final : public SystemBase {
     explicit System(
         SystemFunc func,
         const ArchetypeMap& archetypes,
-        std::vector<ComponentAccess> component_types
+        std::vector<SystemDependencies> dependencies
     )
         : func{std::move(func)}
-        , query{archetypes, std::move(component_types)} {}
+        , query{archetypes, std::move(dependencies)} {}
 
     System(const System&) = delete;
     auto operator=(const System&) -> System& = delete;

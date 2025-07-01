@@ -13,8 +13,8 @@ namespace atlas::hephaestus {
 template <AllTypeOfComponent... ComponentTypes>
 class Query final {
   public:
-    Query(const ArchetypeMap& archetypes, std::vector<ComponentAccess> component_types)
-        : context{archetypes, std::move(component_types)} {
+    Query(const ArchetypeMap& archetypes, std::vector<SystemDependencies> dependencies)
+        : context{archetypes, std::move(dependencies)} {
         std::println("Query Constructor");
     }
 
@@ -69,10 +69,7 @@ template <AllTypeOfComponent... ComponentTypes>
 [[nodiscard]] inline auto Query<ComponentTypes...>::get() const -> ComponentsVector& {
     const auto cumsum_version = calc_components_cumsum_version();
     if (is_cache_dirty(cumsum_version)) {
-        auto pipeline = build_pipeline<ComponentTypes...>(
-            context.archetypes,
-            context.component_types
-        );
+        auto pipeline = build_pipeline<ComponentTypes...>(context.archetypes);
 
         // We evaluate the pipeline and collect it into a vector.
         // This costs one iteration over the data, but enables size storage and

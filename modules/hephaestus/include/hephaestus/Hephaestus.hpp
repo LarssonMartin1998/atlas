@@ -26,7 +26,7 @@ template <typename... Ts>
 struct Debugs;
 
 struct SystemNode {
-    std::vector<ComponentAccess> component_access_dependencies;
+    std::vector<SystemDependencies> dependencies;
 };
 
 class Hephaestus final : public core::Module, public core::ITickable {
@@ -104,8 +104,8 @@ class Hephaestus final : public core::Module, public core::ITickable {
         template <template <typename...> class Template>
         using Apply = Template<std::remove_cvref_t<Ts>...>; // Remove both const and ref
 
-        static auto make_access_signature() {
-            return make_component_access_signature<Ts...>();
+        static auto make_dependencies() {
+            return make_system_dependencies<Ts...>();
         }
     };
 };
@@ -127,13 +127,13 @@ auto Hephaestus::create_system(Func&& func) -> void {
     using Components = TupleElements<TupleType>;
     using SystemType = typename Components::template Apply<System>;
 
-    auto access_signature = Components::make_access_signature();
-    system_nodes->emplace_back(access_signature);
+    auto dependencies = Components::make_dependencies();
+    system_nodes->emplace_back(SystemNode{.dependencies = dependencies});
 
     auto new_system = std::make_unique<SystemType>(
         std::forward<Func>(func),
         archetypes,
-        std::move(access_signature)
+        std::move(dependencies)
     );
 
     systems.emplace_back(std::move(new_system));
@@ -153,7 +153,7 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
 
     creation_queue.emplace_back([this, data = std::move(components_tuple)]() mutable {
         const auto entity_id = generate_unique_entity_id();
-        const auto signature = make_component_type_signature<ComponentTypes...>();
+        const auto signature = make_archetype_key<ComponentTypes...>();
 
         auto& archetype = [this, &signature]() -> ArchetypePtr& {
             if (!archetypes.contains(signature)) {

@@ -3,7 +3,7 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <hephaestus/Component.hpp>
-#include <hephaestus/ComponentSignature.hpp>
+#include <hephaestus/ArchetypeKey.hpp>
 #include <hephaestus/Hephaestus.hpp>
 #include <hephaestus/Utils.hpp>
 
@@ -107,23 +107,23 @@ class HephaestusUtilsTest : public ::testing::Test {
     void TearDown() override {}
 };
 
-// Test 1: Basic const signature generation
-TEST_F(HephaestusUtilsTest, ComponentAccessSignatureGeneration) {
+// Test 1: Basic const dependency generation
+TEST_F(HephaestusUtilsTest, SystemDependenciesGeneration) {
     // Test basic const detection
-    auto const_signature = make_component_access_signature<const Position&, const Velocity&>();
+    auto const_signature = make_system_dependencies<const Position&, const Velocity&>();
     EXPECT_EQ(const_signature.size(), 2);
     EXPECT_TRUE(const_signature[0].is_read_only);
     EXPECT_TRUE(const_signature[1].is_read_only);
 
     // Test mixed const/non-const
-    auto mixed_signature = make_component_access_signature<const Position&, Velocity&>();
+    auto mixed_signature = make_system_dependencies<const Position&, Velocity&>();
     EXPECT_EQ(mixed_signature.size(), 2);
 
     // Find Position and Velocity in the sorted signature
-    auto pos_it = std::ranges::find_if(mixed_signature, [](const ComponentAccess& access) {
+    auto pos_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
         return access.type == std::type_index(typeid(Position));
     });
-    auto vel_it = std::ranges::find_if(mixed_signature, [](const ComponentAccess& access) {
+    auto vel_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
         return access.type == std::type_index(typeid(Velocity));
     });
 
@@ -254,13 +254,13 @@ protected:
     void TearDown() override {}
 };
 
-TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureGeneration) {
+TEST_F(HephaestusOptimizedSignatureTest, ArchetypeKeyGeneration) {
     using namespace atlas::hephaestus;
     
     // Test single component signature
-    auto pos_sig = make_component_type_signature<Position>();
-    auto vel_sig = make_component_type_signature<Velocity>();
-    auto health_sig = make_component_type_signature<Health>();
+    auto pos_sig = make_archetype_key<Position>();
+    auto vel_sig = make_archetype_key<Velocity>();
+    auto health_sig = make_archetype_key<Health>();
     
     // Signatures should be different
     EXPECT_NE(pos_sig, vel_sig);
@@ -268,8 +268,8 @@ TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureGeneration) {
     EXPECT_NE(pos_sig, health_sig);
     
     // Test multiple component signature
-    auto pos_vel_sig = make_component_type_signature<Position, Velocity>();
-    auto vel_health_sig = make_component_type_signature<Velocity, Health>();
+    auto pos_vel_sig = make_archetype_key<Position, Velocity>();
+    auto vel_health_sig = make_archetype_key<Velocity, Health>();
     
     // Combined signatures should be different from individual ones
     EXPECT_NE(pos_vel_sig, pos_sig);
@@ -281,12 +281,12 @@ TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureGeneration) {
     EXPECT_NE(pos_vel_sig, vel_health_sig);
 }
 
-TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureOperations) {
+TEST_F(HephaestusOptimizedSignatureTest, ArchetypeKeyOperations) {
     using namespace atlas::hephaestus;
     
-    auto pos_sig = make_component_type_signature<Position>();
-    auto vel_sig = make_component_type_signature<Velocity>();
-    auto pos_vel_sig = make_component_type_signature<Position, Velocity>();
+    auto pos_sig = make_archetype_key<Position>();
+    auto vel_sig = make_archetype_key<Velocity>();
+    auto pos_vel_sig = make_archetype_key<Position, Velocity>();
     
     // Test subset relationships
     EXPECT_TRUE(pos_sig.is_subset_of(pos_vel_sig));
@@ -305,38 +305,38 @@ TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureOperations) {
     EXPECT_EQ(pos_vel_sig.count_components(), 2);
 }
 
-TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureConsistency) {
+TEST_F(HephaestusOptimizedSignatureTest, ArchetypeKeyConsistency) {
     using namespace atlas::hephaestus;
     
     // Test that order doesn't matter for signature generation
-    auto sig1 = make_component_type_signature<Position, Velocity>();
-    auto sig2 = make_component_type_signature<Velocity, Position>();
+    auto sig1 = make_archetype_key<Position, Velocity>();
+    auto sig2 = make_archetype_key<Velocity, Position>();
     
-    EXPECT_EQ(sig1, sig2) << "Component signature should be order-independent";
+    EXPECT_EQ(sig1, sig2) << "Archetype key should be order-independent";
     
     // Test that const/non-const doesn't affect signature
-    auto sig3 = make_component_type_signature<const Position, Velocity>();
-    auto sig4 = make_component_type_signature<Position, const Velocity>();
-    auto sig5 = make_component_type_signature<const Position, const Velocity>();
+    auto sig3 = make_archetype_key<const Position, Velocity>();
+    auto sig4 = make_archetype_key<Position, const Velocity>();
+    auto sig5 = make_archetype_key<const Position, const Velocity>();
     
-    EXPECT_EQ(sig1, sig3) << "const qualifiers should not affect signature";
-    EXPECT_EQ(sig1, sig4) << "const qualifiers should not affect signature";
-    EXPECT_EQ(sig1, sig5) << "const qualifiers should not affect signature";
+    EXPECT_EQ(sig1, sig3) << "const qualifiers should not affect archetype key";
+    EXPECT_EQ(sig1, sig4) << "const qualifiers should not affect archetype key";
+    EXPECT_EQ(sig1, sig5) << "const qualifiers should not affect archetype key";
 }
 
-TEST_F(HephaestusOptimizedSignatureTest, ComponentSignatureHashPerformance) {
+TEST_F(HephaestusOptimizedSignatureTest, ArchetypeKeyHashPerformance) {
     using namespace atlas::hephaestus;
     
     // Test that signature hashing is consistent
-    auto sig1 = make_component_type_signature<Position, Velocity>();
-    auto sig2 = make_component_type_signature<Position, Velocity>();
+    auto sig1 = make_archetype_key<Position, Velocity>();
+    auto sig2 = make_archetype_key<Position, Velocity>();
     
-    ComponentSignatureHash hasher;
-    EXPECT_EQ(hasher(sig1), hasher(sig2)) << "Equal signatures should have equal hashes";
+    ArchetypeKeyHash hasher;
+    EXPECT_EQ(hasher(sig1), hasher(sig2)) << "Equal keys should have equal hashes";
     
     // Test that different signatures have different hashes (basic collision test)
-    auto sig3 = make_component_type_signature<Position, Health>();
-    EXPECT_NE(hasher(sig1), hasher(sig3)) << "Different signatures should have different hashes";
+    auto sig3 = make_archetype_key<Position, Health>();
+    EXPECT_NE(hasher(sig1), hasher(sig3)) << "Different keys should have different hashes";
 }
 
 TEST_F(HephaestusOptimizedSignatureTest, ArchetypeMapCompatibility) {
@@ -345,8 +345,8 @@ TEST_F(HephaestusOptimizedSignatureTest, ArchetypeMapCompatibility) {
     // Test that ArchetypeMap can be created and used
     ArchetypeMap map;
     
-    auto sig1 = make_component_type_signature<Position>();
-    auto sig2 = make_component_type_signature<Position, Velocity>();
+    auto sig1 = make_archetype_key<Position>();
+    auto sig2 = make_archetype_key<Position, Velocity>();
     
     // Test insertion and lookup
     map[sig1] = std::make_unique<Archetype>();
@@ -357,7 +357,7 @@ TEST_F(HephaestusOptimizedSignatureTest, ArchetypeMapCompatibility) {
     EXPECT_TRUE(map.contains(sig2));
     
     // Test that different signatures map to different entries
-    auto sig3 = make_component_type_signature<Health>();
+    auto sig3 = make_archetype_key<Health>();
     EXPECT_FALSE(map.contains(sig3));
 }
 
@@ -369,25 +369,25 @@ TEST_F(HephaestusOptimizedSignatureTest, PerformanceComparison) {
     
     // Test signature creation and hashing performance
     auto start_test = high_resolution_clock::now();
-    ComponentSignatureHash hasher;
+    ArchetypeKeyHash hasher;
     for (int i = 0; i < NUM_ITERATIONS; ++i) {
-        auto signature = make_component_type_signature<Position, Velocity, Health>();
+        auto signature = make_archetype_key<Position, Velocity, Health>();
         volatile auto hash = hasher(signature); // volatile to prevent optimization
         (void)hash; // Avoid unused variable warning
     }
     auto end_test = high_resolution_clock::now();
     auto test_duration = duration_cast<microseconds>(end_test - start_test);
     
-    std::cout << "ComponentSignature system: " << test_duration.count() << " microseconds for " 
+    std::cout << "ArchetypeKey system: " << test_duration.count() << " microseconds for " 
               << NUM_ITERATIONS << " iterations\n";
     
     // Verify performance is reasonable (should complete in well under a second)
     EXPECT_LT(test_duration.count(), 1000000) // Less than 1 second
-        << "ComponentSignature operations should be fast";
+        << "ArchetypeKey operations should be fast";
     
     // Test signature operations performance
-    auto sig1 = make_component_type_signature<Position, Velocity>();
-    auto sig2 = make_component_type_signature<Position, Health>();
+    auto sig1 = make_archetype_key<Position, Velocity>();
+    auto sig2 = make_archetype_key<Position, Health>();
     
     auto start_ops = high_resolution_clock::now();
     for (int i = 0; i < NUM_ITERATIONS; ++i) {
@@ -399,19 +399,19 @@ TEST_F(HephaestusOptimizedSignatureTest, PerformanceComparison) {
     auto end_ops = high_resolution_clock::now();
     auto ops_duration = duration_cast<microseconds>(end_ops - start_ops);
     
-    std::cout << "ComponentSignature operations: " << ops_duration.count() << " microseconds for " 
+    std::cout << "ArchetypeKey operations: " << ops_duration.count() << " microseconds for " 
               << NUM_ITERATIONS << " iterations\n";
     
     // Operations should be very fast (constant time)
     EXPECT_LT(ops_duration.count(), 100000) // Less than 0.1 seconds
-        << "ComponentSignature operations should be constant time and very fast";
+        << "ArchetypeKey operations should be constant time and very fast";
 }
 
 TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
     using namespace atlas::hephaestus;
     
-    // Test memory footprint of the new ComponentSignature system
-    auto signature = make_component_type_signature<Position, Velocity, Health>();
+    // Test memory footprint of the new ArchetypeKey system
+    auto signature = make_archetype_key<Position, Velocity, Health>();
     
     // The new signature system uses a fixed-size array of uint64_t values
     size_t signature_size = sizeof(signature);
@@ -420,12 +420,12 @@ TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
     // (3 type_index elements + vector overhead)
     size_t estimated_vector_size = sizeof(std::vector<std::type_index>) + 3 * sizeof(std::type_index);
     
-    std::cout << "ComponentSignature memory footprint: " << signature_size << " bytes\n";
+    std::cout << "ArchetypeKey memory footprint: " << signature_size << " bytes\n";
     std::cout << "Estimated vector-based signature: " << estimated_vector_size << " bytes\n";
     
     // Verify that we have a reasonable memory footprint
-    EXPECT_EQ(signature_size, sizeof(ComponentSignature::StorageType)) 
-        << "ComponentSignature should only contain the storage array";
+    EXPECT_EQ(signature_size, sizeof(ArchetypeKey::StorageType)) 
+        << "ArchetypeKey should only contain the storage array";
     
     // Verify signature functionality
     EXPECT_EQ(signature.count_components(), 3);

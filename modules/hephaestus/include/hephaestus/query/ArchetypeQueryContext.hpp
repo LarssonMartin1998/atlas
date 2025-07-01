@@ -8,10 +8,10 @@ namespace atlas::hephaestus {
 struct ArchetypeQueryContext final {
     explicit ArchetypeQueryContext(
         const ArchetypeMap& archetypes,
-        std::vector<ComponentAccess> component_types
+        std::vector<SystemDependencies> dependencies
     )
         : archetypes{archetypes}
-        , component_types{std::move(component_types)} {
+        , dependencies{std::move(dependencies)} {
 
         std::println("QueryContext Constructor");
     }
@@ -25,6 +25,6 @@ struct ArchetypeQueryContext final {
     ~ArchetypeQueryContext() = default;
 
     const ArchetypeMap& archetypes;
-    const std::vector<ComponentAccess> component_types;
+    const std::vector<SystemDependencies> dependencies;
 };
 } // namespace atlas::hephaestus

@@ -10,30 +10,30 @@
 
 namespace atlas::hephaestus {
 
-// Type-safe wrapper for component signature using bitmasking
+// Type-safe wrapper for archetype key using bitmasking
 // Supports up to 256 component types (4 * 64) without heap allocations
 // This is a hard limit (but is easily adjustable if needed). 256 components should be sufficient
 // for most games. Might be a good idea to add this to a generated file via CMake later on and let
 // it be controlled from the Game space.
-class ComponentSignature {
+class ArchetypeKey {
   public:
     static constexpr size_t STORAGE_SIZE = 4;
     using ValueType = std::uint64_t;
     using StorageType = std::array<ValueType, STORAGE_SIZE>;
 
-    constexpr ComponentSignature() = default;
-    constexpr explicit ComponentSignature(const StorageType& storage)
+    constexpr ArchetypeKey() = default;
+    constexpr explicit ArchetypeKey(const StorageType& storage)
         : storage(storage) {}
 
-    constexpr auto operator==(const ComponentSignature& other) const -> bool {
+    constexpr auto operator==(const ArchetypeKey& other) const -> bool {
         return storage == other.storage;
     }
 
-    constexpr auto operator!=(const ComponentSignature& other) const -> bool {
+    constexpr auto operator!=(const ArchetypeKey& other) const -> bool {
         return !(*this == other);
     }
 
-    constexpr auto operator<(const ComponentSignature& other) const -> bool {
+    constexpr auto operator<(const ArchetypeKey& other) const -> bool {
         // Lexicographic comparison
         for (size_t i = 0; i < STORAGE_SIZE; ++i) {
             if (storage.at(i) != other.storage.at(i)) {
@@ -53,7 +53,7 @@ class ComponentSignature {
         return bucket < STORAGE_SIZE && (storage.at(bucket) & (1ULL << bit)) != 0;
     }
 
-    constexpr auto add_component(size_t component_id) -> ComponentSignature& {
+    constexpr auto add_component(size_t component_id) -> ArchetypeKey& {
         const size_t bucket = component_id / 64;
         const size_t bit = component_id % 64;
         if (bucket < STORAGE_SIZE) {
@@ -62,7 +62,7 @@ class ComponentSignature {
         return *this;
     }
 
-    constexpr auto remove_component(size_t component_id) -> ComponentSignature& {
+    constexpr auto remove_component(size_t component_id) -> ArchetypeKey& {
         const size_t bucket = component_id / 64;
         const size_t bit = component_id % 64;
         if (bucket < STORAGE_SIZE) {
@@ -71,7 +71,7 @@ class ComponentSignature {
         return *this;
     }
 
-    [[nodiscard]] constexpr auto is_subset_of(const ComponentSignature& other) const -> bool {
+    [[nodiscard]] constexpr auto is_subset_of(const ArchetypeKey& other) const -> bool {
         for (size_t i = 0; i < STORAGE_SIZE; ++i) {
             if ((storage.at(i) & other.storage.at(i)) != storage.at(i)) {
                 return false;
@@ -80,7 +80,7 @@ class ComponentSignature {
         return true;
     }
 
-    [[nodiscard]] constexpr auto intersects_with(const ComponentSignature& other) const -> bool {
+    [[nodiscard]] constexpr auto intersects_with(const ArchetypeKey& other) const -> bool {
         for (size_t i = 0; i < STORAGE_SIZE; ++i) {
             if ((storage.at(i) & other.storage.at(i)) != 0) {
                 return true;
@@ -127,7 +127,7 @@ inline auto get_component_type_id() -> size_t {
     const auto hash = hash_string(typeid(NormalizedType).name());
 
     // Ensure we stay within our storage capacity
-    return hash % (ComponentSignature::STORAGE_SIZE * 64);
+    return hash % (ArchetypeKey::STORAGE_SIZE * 64);
 }
 
 // Get component bitmask for a given component type (legacy compatibility)
@@ -140,13 +140,13 @@ auto get_component_bitmask() -> std::uint64_t {
     return 0; // Component ID is outside first 64 components
 }
 
-// Hash functor for ComponentSignature
-struct ComponentSignatureHash {
-    constexpr auto operator()(const ComponentSignature& sig) const -> std::size_t {
+// Hash functor for ArchetypeKey
+struct ArchetypeKeyHash {
+    constexpr auto operator()(const ArchetypeKey& sig) const -> std::size_t {
         // Combine all storage buckets into a single hash
         std::size_t result = 0;
         const auto& storage = sig.get_storage();
-        for (size_t i = 0; i < ComponentSignature::STORAGE_SIZE; ++i) {
+        for (size_t i = 0; i < ArchetypeKey::STORAGE_SIZE; ++i) {
             // Use a simple hash combining algorithm
             result ^= std::hash<std::uint64_t>{}(storage.at(i)) + 0x9e3779b9
                       + (result << std::size_t{6}) + (result >> std::size_t{2});
@@ -155,8 +155,8 @@ struct ComponentSignatureHash {
     }
 };
 
-struct ComponentSignatureEqual {
-    constexpr auto operator()(const ComponentSignature& lhs, const ComponentSignature& rhs) const
+struct ArchetypeKeyEqual {
+    constexpr auto operator()(const ArchetypeKey& lhs, const ArchetypeKey& rhs) const
         -> bool {
         return lhs == rhs;
     }

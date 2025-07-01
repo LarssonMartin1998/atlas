@@ -1,9 +1,9 @@
 #include "hephaestus/Utils.hpp"
 
 namespace atlas::hephaestus {
-auto are_access_signatures_overlapping(
-    const std::vector<ComponentAccess>& lhs,
-    const std::vector<ComponentAccess>& rhs
+auto are_dependencies_overlapping(
+    const std::vector<SystemDependencies>& lhs,
+    const std::vector<SystemDependencies>& rhs
 ) -> bool {
     size_t lhs_idx = 0;
     size_t rhs_idx = 0;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hephaestus/ComponentSignature.hpp"
+#include "hephaestus/ArchetypeKey.hpp"
 #include <memory>
 #include <unordered_map>
 
@@ -11,10 +11,10 @@ class Archetype;
 namespace atlas::hephaestus {
 using ArchetypePtr = std::unique_ptr<Archetype>;
 
-// ArchetypeMap using ComponentSignature
+// ArchetypeMap using ArchetypeKey
 using ArchetypeMap = std::unordered_map<
-    ComponentSignature,
+    ArchetypeKey,
     ArchetypePtr,
-    ComponentSignatureHash,
-    ComponentSignatureEqual>;
+    ArchetypeKeyHash,
+    ArchetypeKeyEqual>;
 } // namespace atlas::hephaestus
