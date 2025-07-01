@@ -156,8 +156,7 @@ struct ArchetypeKeyHash {
 };
 
 struct ArchetypeKeyEqual {
-    constexpr auto operator()(const ArchetypeKey& lhs, const ArchetypeKey& rhs) const
-        -> bool {
+    constexpr auto operator()(const ArchetypeKey& lhs, const ArchetypeKey& rhs) const -> bool {
         return lhs == rhs;
     }
 };

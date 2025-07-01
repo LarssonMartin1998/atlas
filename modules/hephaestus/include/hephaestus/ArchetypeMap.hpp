@@ -12,9 +12,6 @@ namespace atlas::hephaestus {
 using ArchetypePtr = std::unique_ptr<Archetype>;
 
 // ArchetypeMap using ArchetypeKey
-using ArchetypeMap = std::unordered_map<
-    ArchetypeKey,
-    ArchetypePtr,
-    ArchetypeKeyHash,
-    ArchetypeKeyEqual>;
+using ArchetypeMap = std::
+    unordered_map<ArchetypeKey, ArchetypePtr, ArchetypeKeyHash, ArchetypeKeyEqual>;
 } // namespace atlas::hephaestus
