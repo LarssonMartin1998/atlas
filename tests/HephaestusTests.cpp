@@ -152,16 +152,14 @@ TEST_F(HephaestusUtilsTest, ConstAwareConflictDetection) {
 // Test 3: Type signature generation (for archetype queries)
 TEST_F(HephaestusUtilsTest, TypeSignatureGeneration) {
     auto signature = make_component_type_signature<Position, Velocity>();
-    EXPECT_EQ(signature.size(), 2);
+    EXPECT_EQ(signature.count_components(), 2);
 
-    // Should contain type indices for Position and Velocity
-    auto has_position = std::ranges::find(signature, std::type_index(typeid(Position)))
-                        != signature.end();
-    auto has_velocity = std::ranges::find(signature, std::type_index(typeid(Velocity)))
-                        != signature.end();
-
-    EXPECT_TRUE(has_position);
-    EXPECT_TRUE(has_velocity);
+    // Test that the signature has the expected components
+    auto pos_id = get_component_type_id<Position>();
+    auto vel_id = get_component_type_id<Velocity>();
+    
+    EXPECT_TRUE(signature.has_component(pos_id));
+    EXPECT_TRUE(signature.has_component(vel_id));
 }
 
 // Test 4: Edge cases
@@ -369,60 +367,69 @@ TEST_F(HephaestusOptimizedSignatureTest, PerformanceComparison) {
     
     const int NUM_ITERATIONS = 10000;
     
-    // Test legacy signature system performance
-    auto start_legacy = high_resolution_clock::now();
+    // Test signature creation and hashing performance
+    auto start_test = high_resolution_clock::now();
+    ComponentSignatureHash hasher;
     for (int i = 0; i < NUM_ITERATIONS; ++i) {
-        auto legacy_sig = make_component_type_signature<Position, Velocity, Health>();
-        TypeIndexVectorHash hasher;
-        volatile auto hash = hasher(legacy_sig); // volatile to prevent optimization
+        auto signature = make_component_type_signature<Position, Velocity, Health>();
+        volatile auto hash = hasher(signature); // volatile to prevent optimization
         (void)hash; // Avoid unused variable warning
     }
-    auto end_legacy = high_resolution_clock::now();
-    auto legacy_duration = duration_cast<microseconds>(end_legacy - start_legacy);
+    auto end_test = high_resolution_clock::now();
+    auto test_duration = duration_cast<microseconds>(end_test - start_test);
     
-    // Test optimized signature system performance
-    auto start_optimized = high_resolution_clock::now();
+    std::cout << "ComponentSignature system: " << test_duration.count() << " microseconds for " 
+              << NUM_ITERATIONS << " iterations\n";
+    
+    // Verify performance is reasonable (should complete in well under a second)
+    EXPECT_LT(test_duration.count(), 1000000) // Less than 1 second
+        << "ComponentSignature operations should be fast";
+    
+    // Test signature operations performance
+    auto sig1 = make_component_type_signature<Position, Velocity>();
+    auto sig2 = make_component_type_signature<Position, Health>();
+    
+    auto start_ops = high_resolution_clock::now();
     for (int i = 0; i < NUM_ITERATIONS; ++i) {
-        auto optimized_sig = make_component_type_signature<Position, Velocity, Health>();
-        ComponentSignatureHash hasher;
-        volatile auto hash = hasher(optimized_sig); // volatile to prevent optimization
-        (void)hash; // Avoid unused variable warning
+        volatile bool subset = sig1.is_subset_of(sig2);
+        volatile bool intersects = sig1.intersects_with(sig2);
+        volatile int count = sig1.count_components();
+        (void)subset; (void)intersects; (void)count; // Avoid unused variable warnings
     }
-    auto end_optimized = high_resolution_clock::now();
-    auto optimized_duration = duration_cast<microseconds>(end_optimized - start_optimized);
+    auto end_ops = high_resolution_clock::now();
+    auto ops_duration = duration_cast<microseconds>(end_ops - start_ops);
     
-    std::cout << "Legacy signature system: " << legacy_duration.count() << " microseconds\n";
-    std::cout << "Optimized signature system: " << optimized_duration.count() << " microseconds\n";
+    std::cout << "ComponentSignature operations: " << ops_duration.count() << " microseconds for " 
+              << NUM_ITERATIONS << " iterations\n";
     
-    // The optimized version should be significantly faster
-    // We expect at least 2x improvement, but allow for some variance
-    EXPECT_LT(optimized_duration.count() * 2, legacy_duration.count()) 
-        << "Optimized system should be at least 2x faster than legacy system";
+    // Operations should be very fast (constant time)
+    EXPECT_LT(ops_duration.count(), 100000) // Less than 0.1 seconds
+        << "ComponentSignature operations should be constant time and very fast";
 }
 
 TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
     using namespace atlas::hephaestus;
     
-    // Test memory footprint
-    auto legacy_sig = make_component_type_signature<Position, Velocity, Health>();
-    auto optimized_sig = make_component_type_signature<Position, Velocity, Health>();
+    // Test memory footprint of the new ComponentSignature system
+    auto signature = make_component_type_signature<Position, Velocity, Health>();
     
-    // Legacy signature uses a vector which has heap allocation
-    size_t legacy_size = sizeof(legacy_sig) + legacy_sig.size() * sizeof(std::type_index);
+    // The new signature system uses a fixed-size array of uint64_t values
+    size_t signature_size = sizeof(signature);
     
-    // Optimized signature is just a single uint64_t
-    size_t optimized_size = sizeof(optimized_sig);
+    // For comparison, estimate what a vector-based signature would cost
+    // (3 type_index elements + vector overhead)
+    size_t estimated_vector_size = sizeof(std::vector<std::type_index>) + 3 * sizeof(std::type_index);
     
-    std::cout << "Legacy signature memory footprint: " << legacy_size << " bytes\n";
-    std::cout << "Optimized signature memory footprint: " << optimized_size << " bytes\n";
+    std::cout << "ComponentSignature memory footprint: " << signature_size << " bytes\n";
+    std::cout << "Estimated vector-based signature: " << estimated_vector_size << " bytes\n";
     
-    // The optimized version should use significantly less memory
-    EXPECT_LT(optimized_size, legacy_size) 
-        << "Optimized signature should use less memory than legacy signature";
+    // Verify that we have a reasonable memory footprint
+    EXPECT_EQ(signature_size, sizeof(ComponentSignature::StorageType)) 
+        << "ComponentSignature should only contain the storage array";
     
-    // For 3 components, we expect significant savings
-    EXPECT_LT(optimized_size * 3, legacy_size) 
-        << "Optimized signature should use at least 3x less memory";
+    // Verify signature functionality
+    EXPECT_EQ(signature.count_components(), 3);
+    EXPECT_FALSE(signature.empty());
 }
 
 // Demonstration of complete drop-in replacement

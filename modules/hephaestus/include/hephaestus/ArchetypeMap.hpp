@@ -11,7 +11,7 @@ class Archetype;
 namespace atlas::hephaestus {
 using ArchetypePtr = std::unique_ptr<Archetype>;
 
-// ArchetypeMap using optimized ComponentSignature
+// ArchetypeMap using ComponentSignature
 using ArchetypeMap = std::unordered_map<
     ComponentSignature,
     ArchetypePtr,

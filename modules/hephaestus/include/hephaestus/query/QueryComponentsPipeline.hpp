@@ -14,21 +14,19 @@ auto filter_archetypes_to_signature(
     const ArchetypeMap& map,
     const std::vector<ComponentAccess>& signature
 ) {
-    return map | std::ranges::views::filter([&](const auto& pair) {
-               const auto& archetype_component_types = pair.first;
-               return std::ranges::all_of(
-                   signature,
-                   [&archetype_component_types](const auto& component_access) {
-                       return std::ranges::find(archetype_component_types, component_access.type)
-                              != archetype_component_types.end();
-                   }
-               );
+    // Convert ComponentAccess vector to ComponentSignature for comparison
+    const auto query_signature = component_access_to_signature(signature);
+    
+    return map | std::ranges::views::filter([query_signature](const auto& pair) {
+               const auto& archetype_signature = pair.first;
+               // Check if the query signature is a subset of the archetype signature
+               return query_signature.is_subset_of(archetype_signature);
            });
 }
 
 template <AllTypeOfComponent... ComponentTypes>
 auto build_pipeline(const ArchetypeMap& map, const std::vector<ComponentAccess>& signature) {
-    return filter_archetypes_to_signature(map, signature)
+    return filter_archetypes_to_signature<ComponentTypes...>(map, signature)
            | std::ranges::views::transform([&](auto const& pair) {
                  auto& archetype = *pair.second;
                  return archetype.template get_entity_tuples<ComponentTypes...>();
