@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <ranges>
 
 #include "hephaestus/ArchetypeMap.hpp"
@@ -16,7 +15,7 @@ auto filter_archetypes_to_signature(
 ) {
     // Convert ComponentAccess vector to ComponentSignature for comparison
     const auto query_signature = component_access_to_signature(signature);
-    
+
     return map | std::ranges::views::filter([query_signature](const auto& pair) {
                const auto& archetype_signature = pair.first;
                // Check if the query signature is a subset of the archetype signature

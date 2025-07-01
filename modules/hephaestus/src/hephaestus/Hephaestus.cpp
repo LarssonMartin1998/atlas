@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <functional>
-// #include <print> // C++23 - commented out for build compatibility
+#include <print>
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine)
@@ -17,11 +17,11 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     constexpr auto QUEUE_BUFFERT = 100;
     creation_queue.reserve(QUEUE_BUFFERT);
     destroy_queue.reserve(QUEUE_BUFFERT);
-    // std::println("Hephaestus Constructor");
+    std::println("Hephaestus Constructor");
 }
 
 auto Hephaestus::start() -> void {
-    // std::println("Hephaestus::start()");
+    std::println("Hephaestus::start()");
 }
 
 auto Hephaestus::post_start() -> void {
@@ -29,7 +29,7 @@ auto Hephaestus::post_start() -> void {
 }
 
 auto Hephaestus::shutdown() -> void {
-    // std::println("Hephaestus::shutdown()");
+    std::println("Hephaestus::shutdown()");
 }
 
 auto Hephaestus::tick() -> void {

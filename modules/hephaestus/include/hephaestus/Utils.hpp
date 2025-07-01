@@ -1,13 +1,12 @@
 #pragma once
 
 #include <algorithm>
-#include <ranges>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
 
-#include "hephaestus/Concepts.hpp"
 #include "hephaestus/ComponentSignature.hpp"
+#include "hephaestus/Concepts.hpp"
 
 namespace atlas::hephaestus {
 
@@ -67,17 +66,18 @@ inline auto get_type_index_to_component_id_map() -> std::unordered_map<std::type
 }
 
 // Register a component type in the runtime mapping
-template<typename T>
+template <typename T>
 auto register_component_type() -> void {
     const auto component_id = get_component_type_id<T>();
     get_type_index_to_component_id_map()[std::type_index(typeid(T))] = component_id;
 }
 
 // Convert ComponentAccess vector to ComponentSignature
-inline auto component_access_to_signature(const std::vector<ComponentAccess>& access_vector) -> ComponentSignature {
+inline auto component_access_to_signature(const std::vector<ComponentAccess>& access_vector)
+    -> ComponentSignature {
     ComponentSignature signature;
     const auto& map = get_type_index_to_component_id_map();
-    
+
     for (const auto& access : access_vector) {
         auto it = map.find(access.type);
         if (it != map.end()) {
@@ -91,7 +91,7 @@ template <AllTypeOfComponent... ComponentTypes>
 auto make_component_type_signature() -> ComponentSignature {
     // Register component types in runtime mapping
     (register_component_type<ComponentTypes>(), ...);
-    
+
     ComponentSignature signature;
     ((signature.add_component(get_component_type_id<ComponentTypes>())), ...);
     return signature;
