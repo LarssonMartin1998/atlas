@@ -62,15 +62,6 @@ class ArchetypeKey {
         return *this;
     }
 
-    constexpr auto remove_component(size_t component_id) -> ArchetypeKey& {
-        const size_t bucket = component_id / 64;
-        const size_t bit = component_id % 64;
-        if (bucket < STORAGE_SIZE) {
-            storage.at(bucket) &= ~(1ULL << bit);
-        }
-        return *this;
-    }
-
     [[nodiscard]] constexpr auto is_subset_of(const ArchetypeKey& other) const -> bool {
         for (size_t i = 0; i < STORAGE_SIZE; ++i) {
             if ((storage.at(i) & other.storage.at(i)) != storage.at(i)) {
@@ -128,16 +119,6 @@ inline auto get_component_type_id() -> size_t {
 
     // Ensure we stay within our storage capacity
     return hash % (ArchetypeKey::STORAGE_SIZE * 64);
-}
-
-// Get component bitmask for a given component type (legacy compatibility)
-template <typename T>
-auto get_component_bitmask() -> std::uint64_t {
-    const auto id = get_component_type_id<std::remove_cvref_t<T>>();
-    if (id < 64) {
-        return (1ULL << id);
-    }
-    return 0; // Component ID is outside first 64 components
 }
 
 // Hash functor for ArchetypeKey
