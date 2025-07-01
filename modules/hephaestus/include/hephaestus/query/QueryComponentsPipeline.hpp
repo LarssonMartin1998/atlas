@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <ranges>
 
 #include "hephaestus/ArchetypeMap.hpp"
@@ -10,25 +9,20 @@
 namespace atlas::hephaestus {
 
 template <AllTypeOfComponent... ComponentTypes>
-auto filter_archetypes_to_signature(
-    const ArchetypeMap& map,
-    const std::vector<ComponentAccess>& signature
-) {
-    return map | std::ranges::views::filter([&](const auto& pair) {
-               const auto& archetype_component_types = pair.first;
-               return std::ranges::all_of(
-                   signature,
-                   [&archetype_component_types](const auto& component_access) {
-                       return std::ranges::find(archetype_component_types, component_access.type)
-                              != archetype_component_types.end();
-                   }
-               );
+auto filter_archetypes(const ArchetypeMap& map) {
+    // Create ArchetypeKey directly from template parameters
+    const auto query_key = make_archetype_key<ComponentTypes...>();
+
+    return map | std::ranges::views::filter([query_key](const auto& pair) {
+               const auto& archetype_key = pair.first;
+               // Check if the query key is a subset of the archetype key
+               return query_key.is_subset_of(archetype_key);
            });
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto build_pipeline(const ArchetypeMap& map, const std::vector<ComponentAccess>& signature) {
-    return filter_archetypes_to_signature(map, signature)
+auto build_pipeline(const ArchetypeMap& map) {
+    return filter_archetypes<ComponentTypes...>(map)
            | std::ranges::views::transform([&](auto const& pair) {
                  auto& archetype = *pair.second;
                  return archetype.template get_entity_tuples<ComponentTypes...>();

@@ -26,10 +26,10 @@ class System final : public SystemBase {
     explicit System(
         SystemFunc func,
         const ArchetypeMap& archetypes,
-        std::vector<ComponentAccess> component_types
+        std::vector<SystemDependencies> dependencies
     )
         : func{std::move(func)}
-        , query{archetypes, std::move(component_types)} {}
+        , query{archetypes, std::move(dependencies)} {}
 
     System(const System&) = delete;
     auto operator=(const System&) -> System& = delete;
@@ -86,7 +86,7 @@ auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow
     chunk_size = std::max<std::size_t>(chunk_size, MIN_PARALLEL_WORKERS);
 
     subflow.for_each_index(
-        0,
+        std::size_t{0},
         entity_count,
         chunk_size,
         [this, &engine, &entity_components](std::size_t i) {

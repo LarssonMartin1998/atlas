@@ -102,7 +102,10 @@ auto Engine<G>::run() -> void {
     // const auto file_count = std::count_if(
     //     std::filesystem::directory_iterator(path),
     //     std::filesystem::directory_iterator(),
-    //     [](auto const& entry) { return entry.is_regular_file(); });
+    //     [](auto const& entry) {
+    //         return entry.is_regular_file();
+    //     }
+    // );
     //
     // const auto file_name = path + "/" + std::to_string(file_count) + ".txt";
     // {
