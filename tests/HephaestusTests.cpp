@@ -136,22 +136,22 @@ TEST_F(HephaestusUtilsTest, SystemDependenciesGeneration) {
 // Test 2: Const-aware conflict detection
 TEST_F(HephaestusUtilsTest, ConstAwareConflictDetection) {
     // Two read-only systems should NOT conflict
-    auto read_only_1 = make_component_access_signature<const Position&, const Velocity&>();
-    auto read_only_2 = make_component_access_signature<const Position&>();
-    EXPECT_FALSE(are_access_signatures_overlapping(read_only_1, read_only_2));
+    auto read_only_1 = make_system_dependencies<const Position&, const Velocity&>();
+    auto read_only_2 = make_system_dependencies<const Position&>();
+    EXPECT_FALSE(are_dependencies_overlapping(read_only_1, read_only_2));
 
     // Read-only vs write should conflict
-    auto write_pos = make_component_access_signature<Position&, const Velocity&>();
-    EXPECT_TRUE(are_access_signatures_overlapping(read_only_1, write_pos));
+    auto write_pos = make_system_dependencies<Position&, const Velocity&>();
+    EXPECT_TRUE(are_dependencies_overlapping(read_only_1, write_pos));
 
     // Non-overlapping components should not conflict
-    auto health_reader = make_component_access_signature<const Health&>();
-    EXPECT_FALSE(are_access_signatures_overlapping(read_only_1, health_reader));
+    auto health_reader = make_system_dependencies<const Health&>();
+    EXPECT_FALSE(are_dependencies_overlapping(read_only_1, health_reader));
 }
 
 // Test 3: Type signature generation (for archetype queries)
 TEST_F(HephaestusUtilsTest, TypeSignatureGeneration) {
-    auto signature = make_component_type_signature<Position, Velocity>();
+    auto signature = make_archetype_key<Position, Velocity>();
     EXPECT_EQ(signature.count_components(), 2);
 
     // Test that the signature has the expected components
@@ -165,35 +165,35 @@ TEST_F(HephaestusUtilsTest, TypeSignatureGeneration) {
 // Test 4: Edge cases
 TEST_F(HephaestusUtilsTest, EdgeCases) {
     // Test empty access signature
-    auto empty_access = make_component_access_signature<>();
+    auto empty_access = make_system_dependencies<>();
     EXPECT_TRUE(empty_access.empty());
 
     // Test empty type signature
-    auto empty_type = make_component_type_signature<>();
+    auto empty_type = make_archetype_key<>();
     EXPECT_TRUE(empty_type.empty());
 
     // Test overlap with empty signatures
-    auto pos_sig = make_component_access_signature<const Position&>();
-    EXPECT_FALSE(are_access_signatures_overlapping(empty_access, pos_sig));
-    EXPECT_FALSE(are_access_signatures_overlapping(pos_sig, empty_access));
+    auto pos_sig = make_system_dependencies<const Position&>();
+    EXPECT_FALSE(are_dependencies_overlapping(empty_access, pos_sig));
+    EXPECT_FALSE(are_dependencies_overlapping(pos_sig, empty_access));
 }
 
 TEST_F(HephaestusUtilsTest, ParallelExecutionBenefits) {
     // Create multiple read-only systems that should be able to run in parallel
-    auto audio_sig = make_component_access_signature<const Position&>();
-    auto ui_sig = make_component_access_signature<const Position&, const Velocity&>();
-    auto logger_sig = make_component_access_signature<const Position&>();
+    auto audio_sig = make_system_dependencies<const Position&>();
+    auto ui_sig = make_system_dependencies<const Position&, const Velocity&>();
+    auto logger_sig = make_system_dependencies<const Position&>();
 
     // The key benefit: these systems' signatures should not conflict
-    EXPECT_FALSE(are_access_signatures_overlapping(audio_sig, ui_sig));
-    EXPECT_FALSE(are_access_signatures_overlapping(audio_sig, logger_sig));
-    EXPECT_FALSE(are_access_signatures_overlapping(ui_sig, logger_sig));
+    EXPECT_FALSE(are_dependencies_overlapping(audio_sig, ui_sig));
+    EXPECT_FALSE(are_dependencies_overlapping(audio_sig, logger_sig));
+    EXPECT_FALSE(are_dependencies_overlapping(ui_sig, logger_sig));
 
     // But a write system should conflict with them
-    auto physics_sig = make_component_access_signature<Position&, const Velocity&>();
-    EXPECT_TRUE(are_access_signatures_overlapping(audio_sig, physics_sig));
-    EXPECT_TRUE(are_access_signatures_overlapping(ui_sig, physics_sig));
-    EXPECT_TRUE(are_access_signatures_overlapping(logger_sig, physics_sig));
+    auto physics_sig = make_system_dependencies<Position&, const Velocity&>();
+    EXPECT_TRUE(are_dependencies_overlapping(audio_sig, physics_sig));
+    EXPECT_TRUE(are_dependencies_overlapping(ui_sig, physics_sig));
+    EXPECT_TRUE(are_dependencies_overlapping(logger_sig, physics_sig));
 }
 
 TEST_F(HephaestusUtilsTest, HasDuplicateComponentTypeDetection) {

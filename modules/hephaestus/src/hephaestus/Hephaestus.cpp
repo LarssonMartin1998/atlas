@@ -80,9 +80,9 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
 
     const auto are_nodes_conflicting = [](const SystemNode& node, const SystemNode& other) {
         // Use const-aware access signature conflict detection
-        return are_access_signatures_overlapping(
-            node.component_access_dependencies,
-            other.component_access_dependencies
+        return are_dependencies_overlapping(
+            node.dependencies,
+            other.dependencies
         );
     };
 
