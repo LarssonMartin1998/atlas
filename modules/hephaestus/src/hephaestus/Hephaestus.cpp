@@ -3,7 +3,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <print>
+#include "atlas/common/print_compat.hpp"
 
 namespace atlas::hephaestus {
 Hephaestus::Hephaestus(core::IEngine& engine)

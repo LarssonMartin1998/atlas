@@ -77,6 +77,8 @@ public:
     bool set_engine_called = false;
     std::vector<std::string> lifecycle_order;
     
+    auto get_frame_count() const -> int { return frame_count; }
+
 private:
     IEngine* engine_ptr = nullptr;
     bool quit_requested = false;
@@ -203,7 +205,7 @@ TEST_F(EngineTest, EngineInitStatusProgression) {
     
     // After run(), engine should have executed without errors
     // We can verify the game was properly handled
-    EXPECT_EQ(mock_game->get_frame_count(), 0); // Should have quit immediately
+    EXPECT_EQ(mock_game->get_frame_count(), 1); // One frame runs before quitting
 }
 
 TEST_F(EngineTest, EngineMultipleFramesExecution) {

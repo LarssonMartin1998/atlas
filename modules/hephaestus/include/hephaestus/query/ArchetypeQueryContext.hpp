@@ -2,7 +2,7 @@
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Utils.hpp"
-#include <print>
+#include "atlas/common/print_compat.hpp"
 
 namespace atlas::hephaestus {
 struct ArchetypeQueryContext final {

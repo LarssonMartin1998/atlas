@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <print>
+#include "atlas/common/print_compat.hpp"
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
@@ -78,7 +78,10 @@ template <AllTypeOfComponent... ComponentTypes>
         // random access. This can be used to chink and parellize the execution
         // of the systems. And should result in better performance and
         // utilization.
-        ComponentsVector comp_vec = std::ranges::to<std::vector>(pipeline);
+        ComponentsVector comp_vec;
+        for (auto&& item : pipeline) {
+            comp_vec.push_back(item);
+        }
         cache.emplace(std::move(comp_vec));
         last_cache_cumsum_version = cumsum_version;
     }

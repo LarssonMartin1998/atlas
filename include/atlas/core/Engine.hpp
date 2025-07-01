@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <memory>
-#include <print>
+#include "atlas/common/print_compat.hpp"
 #include <unordered_map>
 
 #include "core/Concepts.hpp"
