@@ -138,7 +138,7 @@ struct ArchetypeKeyHash {
         // Combine all storage buckets into a single hash
         std::size_t result = 0;
         const auto& storage = sig.get_storage();
-        for (size_t i = 0; i < ArchetypeKey::STORAGE_SIZE; ++i) {
+        for (std::size_t i = 0; i < ArchetypeKey::STORAGE_SIZE; ++i) {
             // Use a simple hash combining algorithm
             result ^= std::hash<std::uint64_t>{}(storage.at(i)) + 0x9e3779b9
                       + (result << std::size_t{6}) + (result >> std::size_t{2});

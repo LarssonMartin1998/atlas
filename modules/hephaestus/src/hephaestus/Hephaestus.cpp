@@ -74,7 +74,7 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     std::vector<std::vector<std::size_t>> system_deps(num_nodes);
     // Very pessimistic guesswork for inner vector capacity, but safe.
     // Choose a more realistic number if needed.
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         system_deps[i].reserve(num_nodes);
     }
 
@@ -88,10 +88,10 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         return are_dependencies_overlapping(node.dependencies, other.dependencies);
     };
 
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         auto& node = (*system_nodes)[i];
 
-        for (size_t j = i + 1; j < num_nodes; ++j) {
+        for (std::size_t j = i + 1; j < num_nodes; ++j) {
             auto& other = (*system_nodes)[j];
 
             if (are_nodes_conflicting(node, other)) {
