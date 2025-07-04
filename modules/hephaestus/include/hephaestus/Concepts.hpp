@@ -15,7 +15,4 @@ concept TypeOfComponent = std::
 
 template <typename... Ts>
 concept AllTypeOfComponent = (TypeOfComponent<Ts> && ...);
-
-template <typename T>
-concept RValueArg = !std::is_lvalue_reference_v<T>;
 } // namespace atlas::hephaestus

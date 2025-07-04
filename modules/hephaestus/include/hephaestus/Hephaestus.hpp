@@ -11,6 +11,7 @@
 #include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include "hephaestus/Archetype.hpp"
+#include "hephaestus/ArchetypeKey.hpp"
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Common.hpp"
 #include "hephaestus/Concepts.hpp"
@@ -47,6 +48,8 @@ class Hephaestus final : public core::Module, public core::ITickable {
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(ComponentTypes&&... components) -> void;
 
+    auto destroy_entity(Entity entity) -> void;
+
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
@@ -55,6 +58,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
     ArchetypeMap archetypes;
+    std::unordered_map<Entity, ArchetypeKey> ent_to_archetype_key;
 
     std::vector<std::function<void()>> creation_queue;
     std::vector<std::function<void()>> destroy_queue;
@@ -172,6 +176,8 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
             },
             data
         );
+
+        ent_to_archetype_key.emplace(entity_id, signature);
     });
 }
 } // namespace atlas::hephaestus

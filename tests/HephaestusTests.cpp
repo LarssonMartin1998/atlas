@@ -408,12 +408,12 @@ TEST_F(HephaestusOptimizedSignatureTest, MemoryFootprintComparison) {
     auto signature = make_archetype_key<Position, Velocity, Health>();
 
     // The new signature system uses a fixed-size array of uint64_t values
-    size_t signature_size = sizeof(signature);
+    std::size_t signature_size = sizeof(signature);
 
     // For comparison, estimate what a vector-based signature would cost
     // (3 type_index elements + vector overhead)
-    size_t estimated_vector_size = sizeof(std::vector<std::type_index>)
-                                   + (3 * sizeof(std::type_index));
+    std::size_t estimated_vector_size = sizeof(std::vector<std::type_index>)
+                                        + (3 * sizeof(std::type_index));
 
     std::cout << "ArchetypeKey memory footprint: " << signature_size << " bytes\n";
     std::cout << "Estimated vector-based signature: " << estimated_vector_size << " bytes\n";

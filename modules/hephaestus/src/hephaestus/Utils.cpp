@@ -5,8 +5,8 @@ auto are_dependencies_overlapping(
     const std::vector<SystemDependencies>& lhs,
     const std::vector<SystemDependencies>& rhs
 ) -> bool {
-    size_t lhs_idx = 0;
-    size_t rhs_idx = 0;
+    std::size_t lhs_idx = 0;
+    std::size_t rhs_idx = 0;
 
     while (lhs_idx < lhs.size() && rhs_idx < rhs.size()) {
         const auto& lhs_access = lhs[lhs_idx];

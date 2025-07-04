@@ -98,6 +98,17 @@ class ArchetypeKey {
     StorageType storage{};
 };
 
+constexpr auto next_id() -> size_t {
+    static size_t id = 0;
+    return id++;
+}
+
+template <typename T>
+constexpr auto counter() -> size_t {
+    static size_t value = next_id();
+    return value;
+}
+
 // Simple compile-time string hash using FNV-1a algorithm
 constexpr auto hash_string(std::string_view str) -> std::uint64_t {
     std::uint64_t hash = 14695981039346656037ULL; // FNV offset basis
@@ -109,13 +120,13 @@ constexpr auto hash_string(std::string_view str) -> std::uint64_t {
 }
 
 template <typename T>
-inline auto get_component_type_id() -> size_t {
+constexpr auto get_component_type_id() -> std::size_t {
     // Normalize the type to remove cv-qualifiers and references
     using NormalizedType = std::remove_cvref_t<T>;
 
     // Use a type-specific approach that works with normalized types
     // This ensures const Position and Position get the same ID
-    const auto hash = hash_string(typeid(NormalizedType).name());
+    const auto hash = counter<NormalizedType>();
 
     // Ensure we stay within our storage capacity
     return hash % (ArchetypeKey::STORAGE_SIZE * 64);
@@ -127,7 +138,7 @@ struct ArchetypeKeyHash {
         // Combine all storage buckets into a single hash
         std::size_t result = 0;
         const auto& storage = sig.get_storage();
-        for (size_t i = 0; i < ArchetypeKey::STORAGE_SIZE; ++i) {
+        for (std::size_t i = 0; i < ArchetypeKey::STORAGE_SIZE; ++i) {
             // Use a simple hash combining algorithm
             result ^= std::hash<std::uint64_t>{}(storage.at(i)) + 0x9e3779b9
                       + (result << std::size_t{6}) + (result >> std::size_t{2});

@@ -14,6 +14,11 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     // This is OK for now, but we should handle this in a centralized way
     // later on to make sure that we don't have too many threads.
     systems_executor(std::thread::hardware_concurrency()) {
+
+    constexpr auto ARCHETYPE_BUFFERT = 30;
+    archetypes.reserve(ARCHETYPE_BUFFERT);
+    ent_to_archetype_key.reserve(ARCHETYPE_BUFFERT);
+
     constexpr auto QUEUE_BUFFERT = 100;
     creation_queue.reserve(QUEUE_BUFFERT);
     destroy_queue.reserve(QUEUE_BUFFERT);
@@ -69,7 +74,7 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     std::vector<std::vector<std::size_t>> system_deps(num_nodes);
     // Very pessimistic guesswork for inner vector capacity, but safe.
     // Choose a more realistic number if needed.
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         system_deps[i].reserve(num_nodes);
     }
 
@@ -83,10 +88,10 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         return are_dependencies_overlapping(node.dependencies, other.dependencies);
     };
 
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         auto& node = (*system_nodes)[i];
 
-        for (size_t j = i + 1; j < num_nodes; ++j) {
+        for (std::size_t j = i + 1; j < num_nodes; ++j) {
             auto& other = (*system_nodes)[j];
 
             if (are_nodes_conflicting(node, other)) {
@@ -103,18 +108,22 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     std::vector<tf::Task> tasks(num_nodes);
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         tasks[i] = systems_graph.emplace([this, i](tf::Subflow& subflow) {
             systems[i]->execute(get_engine(), subflow);
         });
     }
 
-    for (size_t i = 0; i < num_nodes; ++i) {
-        for (size_t j : system_deps[i]) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
+        for (std::size_t j : system_deps[i]) {
             if (i < j) {
                 tasks[i].precede(tasks[j]);
             }
         }
     }
+}
+
+auto Hephaestus::destroy_entity(Entity entity) -> void {
+    //
 }
 } // namespace atlas::hephaestus
