@@ -22,12 +22,26 @@ struct IComponentStorage {
     virtual ~IComponentStorage() = default;
 
     [[nodiscard]] virtual auto size() const -> std::size_t = 0;
+    virtual auto destroy(std::size_t index) -> void = 0;
 };
 
 template <TypeOfComponent ComponentType>
 struct ComponentStorage final : public IComponentStorage {
     [[nodiscard]] auto size() const -> std::size_t override {
         return components.size();
+    }
+
+    auto destroy(std::size_t index) -> void override {
+        assert(
+            index < components.size()
+            && "Invalid index when trying to destroy component in Archetype"
+        );
+
+        if (index != components.size() - 1) {
+            components[index] = std::move(components.back());
+        }
+
+        components.pop_back();
     }
 
     std::vector<ComponentType> components{};
@@ -37,7 +51,8 @@ class Archetype final {
   public:
     Archetype() {
         constexpr auto ENTITY_BUFFERT = 500;
-        entities.reserve(ENTITY_BUFFERT);
+        ent_to_component_index.reserve(ENTITY_BUFFERT);
+        component_index_to_ent.reserve(ENTITY_BUFFERT);
         component_storages.reserve(ENTITY_BUFFERT);
     }
 
@@ -52,7 +67,7 @@ class Archetype final {
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(Entity entity, ComponentTypes&&... components) -> void;
 
-    auto destroy_entity(Entity entity) -> void;
+    auto destroy_entity(Entity entity) -> bool;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto get_entity_tuples() const -> decltype(auto);
@@ -64,8 +79,10 @@ class Archetype final {
     template <TypeOfComponent ComponentType>
     auto add_to_component_storage(ComponentType&& component) -> void;
 
-    std::unordered_map<Entity, std::size_t> entities;
-    std::unordered_map<std::size_t, std::unique_ptr<IComponentStorage>> component_storages;
+    using ComponentTypeId = std::size_t;
+    std::unordered_map<Entity, std::size_t> ent_to_component_index;
+    std::vector<Entity> component_index_to_ent;
+    std::unordered_map<ComponentTypeId, std::unique_ptr<IComponentStorage>> component_storages;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
@@ -74,17 +91,14 @@ auto Archetype::create_entity(Entity entity, ComponentTypes&&... components) -> 
     assert(!component_storages.empty() && "Cannot add entity without components");
 
     const auto& component_storage = *component_storages.begin()->second;
-    entities.emplace(entity, component_storage.size());
-}
-
-auto Archetype::destroy_entity(Entity entity) -> void {
-    assert(entities.contains(entity) && "Entity does not exist in archetype");
-    // TODO
+    const auto size = component_storage.size();
+    ent_to_component_index.emplace(entity, size);
+    component_index_to_ent.emplace_back(entity);
 }
 
 template <AllTypeOfComponent... ComponentTypes>
 auto Archetype::get_entity_tuples() const -> decltype(auto) {
-    return std::views::iota(std::size_t{0}, entities.size())
+    return std::views::iota(std::size_t{0}, ent_to_component_index.size())
            | std::views::transform([this](const auto& index) {
                  return std::tuple<ComponentTypes&...>{get_components<ComponentTypes>()[index]...};
              });

@@ -61,7 +61,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     std::unordered_map<Entity, ArchetypeKey> ent_to_archetype_key;
 
     std::vector<std::function<void()>> creation_queue;
-    std::vector<std::function<void()>> destroy_queue;
+    std::vector<Entity> destroy_queue;
     std::optional<std::vector<SystemNode>> system_nodes = std::vector<SystemNode>{};
 
     tf::Taskflow systems_graph;

@@ -47,10 +47,20 @@ auto Hephaestus::tick() -> void {
         systems_executor.run(systems_graph).wait();
     }
 
-    //
-    // TODO:
-    // Destroy queued entities
+    for (const auto entity : destroy_queue) {
+        assert(
+            ent_to_archetype_key.contains(entity)
+            && "Trying to destroy an entity that doesnt exist!"
+        );
+
+        auto& archetype = *archetypes.at(ent_to_archetype_key.at(entity));
+        if (archetype.destroy_entity(entity)) {
+            ent_to_archetype_key.erase(entity);
+        }
+    }
+    destroy_queue.clear();
 }
+
 auto Hephaestus::get_tick_rate() const -> unsigned {
     return 1;
 }
@@ -124,6 +134,6 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
 }
 
 auto Hephaestus::destroy_entity(Entity entity) -> void {
-    //
+    destroy_queue.emplace_back(entity);
 }
 } // namespace atlas::hephaestus
