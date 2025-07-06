@@ -50,10 +50,10 @@ struct ComponentStorage final : public IComponentStorage {
 class Archetype final {
   public:
     Archetype() {
-        constexpr auto ENTITY_BUFFERT = 500;
-        ent_to_component_index.reserve(ENTITY_BUFFERT);
-        component_index_to_ent.reserve(ENTITY_BUFFERT);
-        component_storages.reserve(ENTITY_BUFFERT);
+        constexpr auto ENTITY_BUFFER = 500;
+        ent_to_component_index.reserve(ENTITY_BUFFER);
+        component_index_to_ent.reserve(ENTITY_BUFFER);
+        component_storages.reserve(ENTITY_BUFFER);
     }
 
     virtual ~Archetype() = default;

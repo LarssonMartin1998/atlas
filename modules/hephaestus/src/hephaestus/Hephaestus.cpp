@@ -15,13 +15,13 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     // later on to make sure that we don't have too many threads.
     systems_executor(std::thread::hardware_concurrency()) {
 
-    constexpr auto ARCHETYPE_BUFFERT = 30;
-    archetypes.reserve(ARCHETYPE_BUFFERT);
-    ent_to_archetype_key.reserve(ARCHETYPE_BUFFERT);
+    constexpr auto ARCHETYPE_BUFFER = 30;
+    archetypes.reserve(ARCHETYPE_BUFFER);
+    ent_to_archetype_key.reserve(ARCHETYPE_BUFFER);
 
-    constexpr auto QUEUE_BUFFERT = 100;
-    creation_queue.reserve(QUEUE_BUFFERT);
-    destroy_queue.reserve(QUEUE_BUFFERT);
+    constexpr auto QUEUE_BUFFER = 100;
+    creation_queue.reserve(QUEUE_BUFFER);
+    destroy_queue.reserve(QUEUE_BUFFER);
     std::println("Hephaestus Constructor");
 }
 
