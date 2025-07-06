@@ -22,6 +22,7 @@ auto Archetype::destroy_entity(Entity entity) -> bool {
 
     ent_to_component_index.erase(entity);
     component_index_to_ent.pop_back();
+
     return true;
 }
 } // namespace atlas::hephaestus

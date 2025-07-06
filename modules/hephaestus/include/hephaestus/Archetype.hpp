@@ -42,6 +42,7 @@ struct ComponentStorage final : public IComponentStorage {
         }
 
         components.pop_back();
+        ComponentType::increment_version();
     }
 
     std::vector<ComponentType> components{};
@@ -90,9 +91,8 @@ auto Archetype::create_entity(Entity entity, ComponentTypes&&... components) -> 
     (add_to_component_storage<ComponentTypes>(std::forward<ComponentTypes>(components)), ...);
     assert(!component_storages.empty() && "Cannot add entity without components");
 
-    const auto& component_storage = *component_storages.begin()->second;
-    const auto size = component_storage.size();
-    ent_to_component_index.emplace(entity, size);
+    const auto& first_component_storage = *component_storages.begin()->second;
+    ent_to_component_index.emplace(entity, first_component_storage.size() - 1);
     component_index_to_ent.emplace_back(entity);
 }
 
@@ -123,6 +123,6 @@ auto Archetype::add_to_component_storage(ComponentType&& component) -> void {
     static_cast<ComponentStorage<ComponentType>&>(*component_storages[type_id].get())
         .components.emplace_back(std::forward<ComponentType>(component));
 
-    ComponentType::version_counter++;
+    ComponentType::increment_version();
 }
 } // namespace atlas::hephaestus
