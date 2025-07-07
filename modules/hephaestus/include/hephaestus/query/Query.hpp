@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <print>
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
@@ -13,9 +12,7 @@ template <AllTypeOfComponent... ComponentTypes>
 class Query final {
   public:
     Query(const ArchetypeMap& archetypes, std::vector<SystemDependencies> dependencies)
-        : context{archetypes, std::move(dependencies)} {
-        std::println("Query Constructor");
-    }
+        : context{archetypes, std::move(dependencies)} {}
 
     Query(const Query&) = delete;
     auto operator=(const Query&) = delete;

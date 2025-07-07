@@ -2,7 +2,6 @@
 
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Utils.hpp"
-#include <print>
 
 namespace atlas::hephaestus {
 struct ArchetypeQueryContext final {
@@ -11,10 +10,7 @@ struct ArchetypeQueryContext final {
         std::vector<SystemDependencies> dependencies
     )
         : archetypes{archetypes}
-        , dependencies{std::move(dependencies)} {
-
-        std::println("QueryContext Constructor");
-    }
+        , dependencies{std::move(dependencies)} {}
 
     ArchetypeQueryContext(const ArchetypeQueryContext&) = delete;
     auto operator=(const ArchetypeQueryContext&) -> ArchetypeQueryContext& = delete;

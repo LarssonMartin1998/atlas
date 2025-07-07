@@ -56,14 +56,10 @@ Engine<G>::~Engine() {
     for (auto& [module_type, module] : modules) {
         module->shutdown();
     }
-
-    std::println("Engine destroyed");
 }
 
 template <TypeOfGame G>
 auto Engine<G>::run() -> void {
-    std::println("Engine::run()");
-
     game.set_engine(*this);
 
     init_status = EngineInitStatus::RunningPreStart;

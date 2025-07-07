@@ -22,19 +22,15 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     constexpr auto QUEUE_BUFFER = 100;
     creation_queue.reserve(QUEUE_BUFFER);
     destroy_queue.reserve(QUEUE_BUFFER);
-    std::println("Hephaestus Constructor");
 }
 
-auto Hephaestus::start() -> void {
-    std::println("Hephaestus::start()");
-}
+auto Hephaestus::start() -> void {}
 
 auto Hephaestus::post_start() -> void {
     build_systems_dependency_graph();
 }
 
 auto Hephaestus::shutdown() -> void {
-    std::println("Hephaestus::shutdown()");
     std::println("\nTotal created ents: {}", tot_num_created_ents);
     std::println("Total destroyed ents: {}", tot_num_destroyed_ents);
 }
@@ -61,11 +57,8 @@ auto Hephaestus::tick() -> void {
             ent_to_archetype_key.erase(entity);
         }
     }
+    tot_num_destroyed_ents += destroy_queue.size();
     destroy_queue.clear();
-}
-
-auto Hephaestus::get_tick_rate() const -> unsigned {
-    return 1;
 }
 
 auto Hephaestus::generate_unique_entity_id() -> Entity {
