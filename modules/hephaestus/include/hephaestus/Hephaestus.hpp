@@ -40,7 +40,6 @@ class Hephaestus final : public core::Module, public core::ITickable {
     auto shutdown() -> void override;
 
     auto tick() -> void override;
-    [[nodiscard]] auto get_tick_rate() const -> unsigned override;
 
     template <typename Func>
     auto create_system(Func&& func) -> void;
