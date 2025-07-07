@@ -67,6 +67,9 @@ class Hephaestus final : public core::Module, public core::ITickable {
     tf::Taskflow systems_graph;
     tf::Executor systems_executor;
 
+    std::size_t tot_num_created_ents = 0;
+    std::size_t tot_num_destroyed_ents = 0;
+
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
     // pass the lambda which will be used as the system function, the rest is

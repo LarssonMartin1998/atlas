@@ -35,12 +35,15 @@ auto Hephaestus::post_start() -> void {
 
 auto Hephaestus::shutdown() -> void {
     std::println("Hephaestus::shutdown()");
+    std::println("\nTotal created ents: {}", tot_num_created_ents);
+    std::println("Total destroyed ents: {}", tot_num_destroyed_ents);
 }
 
 auto Hephaestus::tick() -> void {
     for (auto& creation : creation_queue) {
         creation();
     }
+    tot_num_created_ents += creation_queue.size();
     creation_queue.clear();
 
     if (!systems_graph.empty()) {
