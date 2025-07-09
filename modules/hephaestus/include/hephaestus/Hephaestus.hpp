@@ -49,6 +49,9 @@ class Hephaestus final : public core::Module, public core::ITickable {
 
     auto destroy_entity(Entity entity) -> void;
 
+    auto get_tot_num_created_ents() const -> std::uint64_t;
+    auto get_tot_num_destroyed_ents() const -> std::uint64_t;
+
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
@@ -66,8 +69,8 @@ class Hephaestus final : public core::Module, public core::ITickable {
     tf::Taskflow systems_graph;
     tf::Executor systems_executor;
 
-    std::size_t tot_num_created_ents = 0;
-    std::size_t tot_num_destroyed_ents = 0;
+    std::uint64_t tot_num_created_ents = 0;
+    std::uint64_t tot_num_destroyed_ents = 0;
 
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
