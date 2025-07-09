@@ -93,6 +93,12 @@ auto Engine<G>::run() -> void {
 
         clock.update_frame_timers(num_frames);
         num_frames++;
+
+        const auto& dt = clock.get_delta_time();
+        constexpr auto FRAME_SPIKE_THRESHOLD = 0.0015;
+        if (dt > FRAME_SPIKE_THRESHOLD) {
+            std::println("⚠️ Frame spike: {} ms", dt * 1000);
+        }
     }
 
     const auto total_time = clock.get_total_time();
@@ -107,9 +113,9 @@ auto Engine<G>::run() -> void {
     );
     std::println("avg FPS: {}", static_cast<double>(num_frames) / total_time);
 
-    std::println("\navg frame time: {}", clock.get_avg_frame_time());
-    std::println("fastest frame: {}", clock.get_fastest_frame_time());
-    std::println("slowest frame: {}", clock.get_slowest_frame_time());
+    std::println("\navg frame time: {} ms", clock.get_avg_frame_time() * 1000);
+    std::println("fastest frame: {} ms", clock.get_fastest_frame_time() * 1000);
+    std::println("slowest frame: {} ms", clock.get_slowest_frame_time() * 1000);
 }
 
 template <TypeOfGame G>

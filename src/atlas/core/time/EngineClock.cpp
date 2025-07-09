@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <print>
 
 namespace atlas::core {
 auto EngineClock::update_frame_timers(const std::uint64_t& num_frames) -> void {
@@ -10,10 +9,6 @@ auto EngineClock::update_frame_timers(const std::uint64_t& num_frames) -> void {
     delta_time.frame_timer.reset();
 
     if (run_time_post_first_frame.has_value()) {
-        if (delta_time.previous_time > 0.002) { // 2ms
-            std::println("⚠️ Frame spike: {} ms", delta_time.previous_time * 1000);
-        }
-
         avg_frame_time = (*run_time_post_first_frame).elapsed() / static_cast<double>(num_frames);
         fastest_frame = std::min(delta_time.previous_time, fastest_frame);
         slowest_frame = std::max(delta_time.previous_time, slowest_frame);
