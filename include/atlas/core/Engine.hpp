@@ -113,9 +113,9 @@ auto Engine<G>::run() -> void {
     );
     std::println("avg FPS: {}", static_cast<double>(num_frames) / total_time);
 
-    std::println("\navg frame time: {}ms", clock.get_avg_frame_time() * 1000);
-    std::println("fastest frame: {}ms", clock.get_fastest_frame_time() * 1000);
-    std::println("slowest frame: {}ms", clock.get_slowest_frame_time() * 1000);
+    std::println("\navg frame time: {} ms", clock.get_avg_frame_time() * 1000);
+    std::println("fastest frame: {} ms", clock.get_fastest_frame_time() * 1000);
+    std::println("slowest frame: {} ms", clock.get_slowest_frame_time() * 1000);
 }
 
 template <TypeOfGame G>
