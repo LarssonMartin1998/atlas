@@ -17,7 +17,7 @@ namespace atlas::hephaestus {
 // it be controlled from the Game space.
 class ArchetypeKey {
   public:
-    static constexpr size_t STORAGE_SIZE = 4;
+    static constexpr std::size_t STORAGE_SIZE = 4;
     using ValueType = std::uint64_t;
     using StorageType = std::array<ValueType, STORAGE_SIZE>;
 
@@ -48,14 +48,14 @@ class ArchetypeKey {
     }
 
     [[nodiscard]] constexpr auto has_component(size_t component_id) const -> bool {
-        const size_t bucket = component_id / 64;
-        const size_t bit = component_id % 64;
+        const std::size_t bucket = component_id / 64;
+        const std::size_t bit = component_id % 64;
         return bucket < STORAGE_SIZE && (storage.at(bucket) & (1ULL << bit)) != 0;
     }
 
     constexpr auto add_component(size_t component_id) -> ArchetypeKey& {
-        const size_t bucket = component_id / 64;
-        const size_t bit = component_id % 64;
+        const std::size_t bucket = component_id / 64;
+        const std::size_t bit = component_id % 64;
         if (bucket < STORAGE_SIZE) {
             storage.at(bucket) |= (1ULL << bit);
         }
@@ -98,14 +98,14 @@ class ArchetypeKey {
     StorageType storage{};
 };
 
-constexpr auto next_id() -> size_t {
-    static size_t id = 0;
+constexpr auto next_id() -> std::size_t {
+    static std::size_t id = 0;
     return id++;
 }
 
 template <typename T>
-constexpr auto counter() -> size_t {
-    static size_t value = next_id();
+constexpr auto counter() -> std::size_t {
+    static std::size_t value = next_id();
     return value;
 }
 
