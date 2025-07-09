@@ -402,13 +402,13 @@ TEST(HephaestusTest, DeletingEntities) {
             EXPECT_FALSE(flip_flop) << "Flip flop shouldve change value with this tick as well.";
 
             hephaestus.tick();
-            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed the "
+            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed "
                                        "the only entity for the system that updates it.";
             hephaestus.tick();
-            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed the "
+            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed "
                                        "the only entity for the system that updates it.";
             hephaestus.tick();
-            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed the "
+            EXPECT_FALSE(flip_flop) << "Flip flop should not change anymore. We destroyed "
                                        "the only entity for the system that updates it.";
 
             EXPECT_EQ(hephaestus.get_tot_num_destroyed_ents(), 1)
