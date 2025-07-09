@@ -123,7 +123,7 @@ template <typename Func>
 auto Hephaestus::create_system(Func&& func) -> void {
     const auto init_status = get_engine().get_engine_init_status();
     assert(
-        init_status == core::EngineInitStatus::RunningStart
+        init_status <= core::EngineInitStatus::RunningStart
         && "Cannot create systems after startup."
     );
     assert(
