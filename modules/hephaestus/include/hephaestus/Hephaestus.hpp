@@ -11,6 +11,7 @@
 #include "core/ITickable.hpp"
 #include "core/Module.hpp"
 #include "hephaestus/Archetype.hpp"
+#include "hephaestus/ArchetypeKey.hpp"
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Common.hpp"
 #include "hephaestus/Concepts.hpp"
@@ -39,13 +40,17 @@ class Hephaestus final : public core::Module, public core::ITickable {
     auto shutdown() -> void override;
 
     auto tick() -> void override;
-    [[nodiscard]] auto get_tick_rate() const -> unsigned override;
 
     template <typename Func>
     auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(ComponentTypes&&... components) -> void;
+
+    auto destroy_entity(Entity entity) -> void;
+
+    auto get_tot_num_created_ents() const -> std::uint64_t;
+    auto get_tot_num_destroyed_ents() const -> std::uint64_t;
 
   protected:
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
@@ -55,13 +60,17 @@ class Hephaestus final : public core::Module, public core::ITickable {
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
     ArchetypeMap archetypes;
+    std::unordered_map<Entity, ArchetypeKey> ent_to_archetype_key;
 
     std::vector<std::function<void()>> creation_queue;
-    std::vector<std::function<void()>> destroy_queue;
+    std::vector<Entity> destroy_queue;
     std::optional<std::vector<SystemNode>> system_nodes = std::vector<SystemNode>{};
 
     tf::Taskflow systems_graph;
     tf::Executor systems_executor;
+
+    std::uint64_t tot_num_created_ents = 0;
+    std::uint64_t tot_num_destroyed_ents = 0;
 
     // This is all confusing, however, the purpose of this is to improve the API
     // for calling the create_system function. This way, the user only needs to
@@ -114,7 +123,7 @@ template <typename Func>
 auto Hephaestus::create_system(Func&& func) -> void {
     const auto init_status = get_engine().get_engine_init_status();
     assert(
-        init_status == core::EngineInitStatus::RunningStart
+        init_status <= core::EngineInitStatus::RunningStart
         && "Cannot create systems after startup."
     );
     assert(
@@ -172,6 +181,8 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
             },
             data
         );
+
+        ent_to_archetype_key.emplace(entity_id, signature);
     });
 }
 } // namespace atlas::hephaestus

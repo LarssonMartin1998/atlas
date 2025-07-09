@@ -14,40 +14,51 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     // This is OK for now, but we should handle this in a centralized way
     // later on to make sure that we don't have too many threads.
     systems_executor(std::thread::hardware_concurrency()) {
-    constexpr auto QUEUE_BUFFERT = 100;
-    creation_queue.reserve(QUEUE_BUFFERT);
-    destroy_queue.reserve(QUEUE_BUFFERT);
-    std::println("Hephaestus Constructor");
+
+    constexpr auto ARCHETYPE_BUFFER = 30;
+    archetypes.reserve(ARCHETYPE_BUFFER);
+    ent_to_archetype_key.reserve(ARCHETYPE_BUFFER);
+
+    constexpr auto QUEUE_BUFFER = 100;
+    creation_queue.reserve(QUEUE_BUFFER);
+    destroy_queue.reserve(QUEUE_BUFFER);
 }
 
-auto Hephaestus::start() -> void {
-    std::println("Hephaestus::start()");
-}
+auto Hephaestus::start() -> void {}
 
 auto Hephaestus::post_start() -> void {
     build_systems_dependency_graph();
 }
 
 auto Hephaestus::shutdown() -> void {
-    std::println("Hephaestus::shutdown()");
+    std::println("\nTotal created ents: {}", tot_num_created_ents);
+    std::println("Total destroyed ents: {}", tot_num_destroyed_ents);
 }
 
 auto Hephaestus::tick() -> void {
     for (auto& creation : creation_queue) {
         creation();
     }
+    tot_num_created_ents += creation_queue.size();
     creation_queue.clear();
 
     if (!systems_graph.empty()) {
         systems_executor.run(systems_graph).wait();
     }
 
-    //
-    // TODO:
-    // Destroy queued entities
-}
-auto Hephaestus::get_tick_rate() const -> unsigned {
-    return 1;
+    for (const auto entity : destroy_queue) {
+        assert(
+            ent_to_archetype_key.contains(entity)
+            && "Trying to destroy an entity that doesnt exist!"
+        );
+
+        auto& archetype = *archetypes.at(ent_to_archetype_key.at(entity));
+        if (archetype.destroy_entity(entity)) {
+            ent_to_archetype_key.erase(entity);
+        }
+    }
+    tot_num_destroyed_ents += destroy_queue.size();
+    destroy_queue.clear();
 }
 
 auto Hephaestus::generate_unique_entity_id() -> Entity {
@@ -69,7 +80,7 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     std::vector<std::vector<std::size_t>> system_deps(num_nodes);
     // Very pessimistic guesswork for inner vector capacity, but safe.
     // Choose a more realistic number if needed.
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         system_deps[i].reserve(num_nodes);
     }
 
@@ -83,10 +94,10 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
         return are_dependencies_overlapping(node.dependencies, other.dependencies);
     };
 
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         auto& node = (*system_nodes)[i];
 
-        for (size_t j = i + 1; j < num_nodes; ++j) {
+        for (std::size_t j = i + 1; j < num_nodes; ++j) {
             auto& other = (*system_nodes)[j];
 
             if (are_nodes_conflicting(node, other)) {
@@ -103,18 +114,30 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 
     std::vector<tf::Task> tasks(num_nodes);
-    for (size_t i = 0; i < num_nodes; ++i) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
         tasks[i] = systems_graph.emplace([this, i](tf::Subflow& subflow) {
             systems[i]->execute(get_engine(), subflow);
         });
     }
 
-    for (size_t i = 0; i < num_nodes; ++i) {
-        for (size_t j : system_deps[i]) {
+    for (std::size_t i = 0; i < num_nodes; ++i) {
+        for (std::size_t j : system_deps[i]) {
             if (i < j) {
                 tasks[i].precede(tasks[j]);
             }
         }
     }
+}
+
+auto Hephaestus::destroy_entity(Entity entity) -> void {
+    destroy_queue.emplace_back(entity);
+}
+
+auto Hephaestus::get_tot_num_created_ents() const -> std::size_t {
+    return tot_num_created_ents;
+}
+
+auto Hephaestus::get_tot_num_destroyed_ents() const -> std::size_t {
+    return tot_num_destroyed_ents;
 }
 } // namespace atlas::hephaestus

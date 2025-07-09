@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <print>
 #include <unordered_map>
@@ -55,14 +56,10 @@ Engine<G>::~Engine() {
     for (auto& [module_type, module] : modules) {
         module->shutdown();
     }
-
-    std::println("Engine destroyed");
 }
 
 template <TypeOfGame G>
 auto Engine<G>::run() -> void {
-    std::println("Engine::run()");
-
     game.set_engine(*this);
 
     init_status = EngineInitStatus::RunningPreStart;
@@ -86,37 +83,33 @@ auto Engine<G>::run() -> void {
 
     init_status = EngineInitStatus::Initialized;
 
-    auto num_frames = 0;
+    std::uint64_t num_frames = 0;
     while (!game.should_quit()) {
+        if (num_frames == 1) {
+            clock.start_post_first_frame_timer();
+        }
+
         tick_root();
 
-        clock.update_delta_time();
+        clock.update_frame_timers(num_frames);
         num_frames++;
     }
 
-    std::println("Num frames: {}", num_frames);
+    const auto total_time = clock.get_total_time();
+    const auto total_tick_time = *clock.get_total_time_without_first_frame();
+    std::println("\nNum frames: {}", num_frames);
+    std::println("Total runtime: {}", total_time);
+    std::println("First frame: {}", total_time - total_tick_time);
 
-    // const auto path = std::string("perf_stats/no_changes");
-    // std::filesystem::create_directories(path);
-    //
-    // const auto file_count = std::count_if(
-    //     std::filesystem::directory_iterator(path),
-    //     std::filesystem::directory_iterator(),
-    //     [](auto const& entry) {
-    //         return entry.is_regular_file();
-    //     }
-    // );
-    //
-    // const auto file_name = path + "/" + std::to_string(file_count) + ".txt";
-    // {
-    //     std::ofstream ofs(file_name);
-    //     if (!ofs) {
-    //         std::println("Failed to open file: {}", file_name);
-    //     } else {
-    //         ofs << num_frames << "\n";
-    //         std::println("Wrote {} frames to {}", num_frames, file_name);
-    //     }
-    // }
+    std::println(
+        "\navg FPS(excluding first frame): {}",
+        static_cast<double>(num_frames) / total_tick_time
+    );
+    std::println("avg FPS: {}", static_cast<double>(num_frames) / total_time);
+
+    std::println("\navg frame time: {}", clock.get_avg_frame_time());
+    std::println("fastest frame: {}", clock.get_fastest_frame_time());
+    std::println("slowest frame: {}", clock.get_slowest_frame_time());
 }
 
 template <TypeOfGame G>

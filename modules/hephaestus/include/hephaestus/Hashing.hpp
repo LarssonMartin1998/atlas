@@ -9,8 +9,8 @@ namespace atlas::hephaestus {
 struct TypeIndexVectorHash {
     auto operator()(const std::vector<std::type_index>& types) const -> std::size_t {
         std::size_t seed = 0;
-        constexpr size_t LEFT_SHIFT = 6;
-        constexpr size_t RIGHT_SHIFT = 2;
+        constexpr std::size_t LEFT_SHIFT = 6;
+        constexpr std::size_t RIGHT_SHIFT = 2;
         for (const auto& type : types) {
             seed ^= type.hash_code() + GOLDEN_RATIO_32 + (seed << LEFT_SHIFT)
                     + (seed >> RIGHT_SHIFT);

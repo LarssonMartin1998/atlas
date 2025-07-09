@@ -12,7 +12,6 @@ class ITickable {
     auto operator=(ITickable&&) -> ITickable& = delete;
 
     virtual auto tick() -> void = 0;
-    [[nodiscard]] virtual auto get_tick_rate() const -> unsigned = 0;
 
   protected:
     ITickable() = default;

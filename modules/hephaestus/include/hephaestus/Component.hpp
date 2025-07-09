@@ -17,8 +17,11 @@ class Component {
         return version_counter;
     }
 
+    static auto increment_version() -> void {
+        version_counter++;
+    }
+
   private:
-    friend class Archetype;
     static std::uint64_t version_counter;
 };
 
