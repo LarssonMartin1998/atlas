@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <tuple>
 #include <type_traits>
@@ -45,9 +46,10 @@ class Hephaestus final : public core::Module, public core::ITickable {
     auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
-    auto create_archetype() -> void;
+    auto create_archetype(std::uint32_t entity_buffer_size) -> void;
 
-    auto create_archetype_with_signature(ArchetypeKey signature) -> void;
+    auto create_archetype_with_signature(ArchetypeKey signature, std::uint32_t entity_buffer_size)
+        -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(ComponentTypes&&... components) -> void;
@@ -153,14 +155,14 @@ auto Hephaestus::create_system(Func&& func) -> void {
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto Hephaestus::create_archetype() -> void {
+auto Hephaestus::create_archetype(const std::uint32_t entity_buffer_size) -> void {
     const auto init_status = get_engine().get_engine_init_status();
     assert(
         init_status <= core::EngineInitStatus::RunningStart
         && "Cannot create new archetypes after start."
     );
 
-    create_archetype_with_signature(make_archetype_key<ComponentTypes...>());
+    create_archetype_with_signature(make_archetype_key<ComponentTypes...>(), entity_buffer_size);
 }
 
 // No entities are created on the fly. We enqueue all of it into a collection
@@ -176,7 +178,8 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
     const auto signature = make_archetype_key<ComponentTypes...>();
     auto& archetype = [this, &signature]() -> ArchetypePtr& {
         if (!archetypes.contains(signature)) {
-            create_archetype_with_signature(signature);
+            constexpr auto ENTITY_BUFFER_GUESSTIMATION = 500;
+            create_archetype_with_signature(signature, ENTITY_BUFFER_GUESSTIMATION);
         }
 
         return archetypes[signature];

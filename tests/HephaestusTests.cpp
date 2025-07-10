@@ -293,8 +293,9 @@ TEST(HephaestusTest, ArchetypeMapCompatibility) {
     auto sig1 = make_archetype_key<Position>();
     auto sig2 = make_archetype_key<Position, Velocity>();
 
-    map[sig1] = std::make_unique<Archetype>();
-    map[sig2] = std::make_unique<Archetype>();
+    constexpr auto ENTITY_BUFFER_SIZE_GUESS = 500;
+    map[sig1] = std::make_unique<Archetype>(ENTITY_BUFFER_SIZE_GUESS);
+    map[sig2] = std::make_unique<Archetype>(ENTITY_BUFFER_SIZE_GUESS);
 
     EXPECT_EQ(map.size(), 2);
     EXPECT_TRUE(map.contains(sig1));
@@ -458,7 +459,8 @@ TEST(HephaestusTest, PreCreateArchetypes) {
             // thread scheduling and predictability reasons. However, entities must support creation
             // after start in a game. If you need create entities later than start, pre create the
             // archetype for that entity.
-            hephaestus.create_archetype<UniqueComponent>();
+            constexpr auto TEST_BUFFER_SIZE = 12;
+            hephaestus.create_archetype<UniqueComponent>(1);
         }
 
         auto post_start() -> void override {
