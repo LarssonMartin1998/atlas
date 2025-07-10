@@ -28,11 +28,15 @@ Atlas follows a naming convention inspired by Greek mythology:
 Atlas is intended to be included as a **Git submodule** in your own game repository.
 
 ```bash
+# If using https
 git submodule add https://github.com/LarssonMartin1998/atlas.git atlas
+# If using ssh
+git submodule add git@github.com:LarssonMartin1998/atlas.git atlas
+
 git submodule update --init --recursive --force
 ```
 
->Note: You don't need a game repo to develop Atlas, the build instructions also apply to just the engine, but use `make test` instead of `make run`.
+> Note: You don't need a game repo to develop Atlas, the build instructions also apply to just the engine, but use `make test` instead of `make run`.
 
 ---
 
@@ -40,7 +44,7 @@ git submodule update --init --recursive --force
 
 ### Nix Users (Recommended)
 
-- **Build your game (You'll find the output binary in `your_game_repo/result/bin/your_game_name`):
+- **Build your game** (You'll find the output binary in `your_game_repo/result/bin/your_game_name`):
 
 ```bash
 nix build .
@@ -85,7 +89,7 @@ You’ll need to manually install the dependencies defined in [`flake.nix`](./fl
 
 Atlas is in active development and not production-ready yet. Contributions, feedback, and curiosity are welcome!
 
-Check out [Daedalus](https://github.com/qvantry/daedalus) to see Atlas in action.
+Check out [Daedalus](https://github.com/LarssonMartin1998/daedalus.git) to see Atlas in action.
 
 ---
 
