@@ -49,7 +49,7 @@ class MockGame : public IGame {
     auto pre_start() -> void override {}
 
     auto start() -> void override {
-        auto& hephaestus = engine_ptr->get_module<Hephaestus>().get();
+        auto& hephaestus = engine_ptr->get_module<Hephaestus>();
 
         hephaestus.create_entity(Position{.x = 1.F, .y = 2.F}, Velocity{.dx = 0.5F, .dy = -0.5F});
         hephaestus.create_entity(Position{.x = 3.F, .y = 4.F}, Velocity{.dx = 1.F, .dy = 1.F});
@@ -364,7 +364,7 @@ TEST(HephaestusTest, DeletingEntities) {
     class TestGameDelete : public MockGame {
       public:
         auto pre_start() -> void override {
-            auto& hephaestus = get_engine().get_module<Hephaestus>().get();
+            auto& hephaestus = get_engine().get_module<Hephaestus>();
             hephaestus.create_system(
                 [this](const IEngine& engine, std::tuple<const Position&, const Health&> data) {
                     flip_flop = !flip_flop;
@@ -373,7 +373,7 @@ TEST(HephaestusTest, DeletingEntities) {
         }
 
         auto post_start() -> void override {
-            auto& hephaestus = get_engine().get_module<Hephaestus>().get();
+            auto& hephaestus = get_engine().get_module<Hephaestus>();
             EXPECT_EQ(hephaestus.get_tot_num_created_ents(), 0)
                 << "Hephaestus should not have created any entities yet.";
 
