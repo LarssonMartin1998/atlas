@@ -459,7 +459,6 @@ TEST(HephaestusTest, PreCreateArchetypes) {
             // thread scheduling and predictability reasons. However, entities must support creation
             // after start in a game. If you need create entities later than start, pre create the
             // archetype for that entity.
-            constexpr auto TEST_BUFFER_SIZE = 12;
             hephaestus.create_archetype<UniqueComponent>(1);
         }
 
