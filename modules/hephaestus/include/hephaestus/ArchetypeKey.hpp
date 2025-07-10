@@ -6,7 +6,6 @@
 #include <functional>
 #include <string_view>
 #include <type_traits>
-#include <typeinfo>
 
 namespace atlas::hephaestus {
 
