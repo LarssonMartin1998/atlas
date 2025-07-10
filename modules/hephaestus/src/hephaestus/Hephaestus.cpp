@@ -129,6 +129,16 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
     }
 }
 
+auto Hephaestus::create_archetype_with_signature(ArchetypeKey signature) -> void {
+    const auto init_status = get_engine().get_engine_init_status();
+    assert(
+        init_status <= core::EngineInitStatus::RunningStart
+        && "Cannot create new archetypes after start."
+    );
+
+    archetypes.emplace(signature, std::make_unique<Archetype>());
+}
+
 auto Hephaestus::destroy_entity(Entity entity) -> void {
     destroy_queue.emplace_back(entity);
 }

@@ -45,6 +45,11 @@ class Hephaestus final : public core::Module, public core::ITickable {
     auto create_system(Func&& func) -> void;
 
     template <AllTypeOfComponent... ComponentTypes>
+    auto create_archetype() -> void;
+
+    auto create_archetype_with_signature(ArchetypeKey signature) -> void;
+
+    template <AllTypeOfComponent... ComponentTypes>
     auto create_entity(ComponentTypes&&... components) -> void;
 
     auto destroy_entity(Entity entity) -> void;
@@ -123,8 +128,7 @@ template <typename Func>
 auto Hephaestus::create_system(Func&& func) -> void {
     const auto init_status = get_engine().get_engine_init_status();
     assert(
-        init_status <= core::EngineInitStatus::RunningStart
-        && "Cannot create systems after startup."
+        init_status <= core::EngineInitStatus::RunningStart && "Cannot create systems after start."
     );
     assert(
         system_nodes != std::nullopt
@@ -148,6 +152,17 @@ auto Hephaestus::create_system(Func&& func) -> void {
     systems.emplace_back(std::move(new_system));
 }
 
+template <AllTypeOfComponent... ComponentTypes>
+auto Hephaestus::create_archetype() -> void {
+    const auto init_status = get_engine().get_engine_init_status();
+    assert(
+        init_status <= core::EngineInitStatus::RunningStart
+        && "Cannot create new archetypes after start."
+    );
+
+    create_archetype_with_signature(make_archetype_key<ComponentTypes...>());
+}
+
 // No entities are created on the fly. We enqueue all of it into a collection
 // which is iterated and constructs all entities in the begining of the next
 // frame.
@@ -158,19 +173,21 @@ auto Hephaestus::create_entity(ComponentTypes&&... components) -> void {
         "A single entity cannot have the same component type twice (const or non-const)."
     );
 
+    const auto signature = make_archetype_key<ComponentTypes...>();
+    auto& archetype = [this, &signature]() -> ArchetypePtr& {
+        if (!archetypes.contains(signature)) {
+            create_archetype_with_signature(signature);
+        }
+
+        return archetypes[signature];
+    }();
+
     auto components_tuple = std::make_tuple(std::forward<ComponentTypes>(components)...);
-
-    creation_queue.emplace_back([this, data = std::move(components_tuple)]() mutable {
+    creation_queue.emplace_back([this,
+                                 data = std::move(components_tuple),
+                                 signature = std::move(signature),
+                                 &archetype]() mutable {
         const auto entity_id = generate_unique_entity_id();
-        const auto signature = make_archetype_key<ComponentTypes...>();
-
-        auto& archetype = [this, &signature]() -> ArchetypePtr& {
-            if (!archetypes.contains(signature)) {
-                archetypes.emplace(signature, std::make_unique<Archetype>());
-            }
-
-            return archetypes[signature];
-        }();
 
         std::apply(
             [&](auto&&... unpacked) {
