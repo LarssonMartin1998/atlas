@@ -38,7 +38,7 @@ class IEngine {
     [[nodiscard]] virtual auto get_clock() const -> const IEngineClock& = 0;
 
     template <TypeOfModule T>
-    [[nodiscard]] auto get_module() const -> std::reference_wrapper<T>;
+    [[nodiscard]] auto get_module() const -> T&;
 
     [[nodiscard]] virtual auto get_engine_init_status() const -> EngineInitStatus = 0;
 
@@ -49,9 +49,9 @@ class IEngine {
 }; // namespace atlas::core
 
 template <TypeOfModule T>
-auto IEngine::get_module() const -> std::reference_wrapper<T> {
+auto IEngine::get_module() const -> T& {
     IModule* module_interface = get_module_impl(std::type_index(typeid(T)));
     T* module_type = dynamic_cast<T*>(module_interface);
-    return std::ref(*module_type);
+    return *module_type;
 }
 } // namespace atlas::core

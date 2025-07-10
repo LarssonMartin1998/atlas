@@ -4,6 +4,7 @@
 #include "hephaestus/Common.hpp"
 #include "hephaestus/Concepts.hpp"
 #include <cassert>
+#include <cstdint>
 #include <memory>
 #include <ranges>
 #include <unordered_map>
@@ -50,11 +51,10 @@ struct ComponentStorage final : public IComponentStorage {
 
 class Archetype final {
   public:
-    Archetype() {
-        constexpr auto ENTITY_BUFFER = 500;
-        ent_to_component_index.reserve(ENTITY_BUFFER);
-        component_index_to_ent.reserve(ENTITY_BUFFER);
-        component_storages.reserve(ENTITY_BUFFER);
+    explicit Archetype(const std::uint32_t entity_buffer_size) {
+        ent_to_component_index.reserve(entity_buffer_size);
+        component_index_to_ent.reserve(entity_buffer_size);
+        component_storages.reserve(entity_buffer_size);
     }
 
     virtual ~Archetype() = default;

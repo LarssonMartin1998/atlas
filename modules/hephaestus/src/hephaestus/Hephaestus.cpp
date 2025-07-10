@@ -2,6 +2,7 @@
 #include "core/IEngine.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <print>
 
@@ -15,13 +16,13 @@ Hephaestus::Hephaestus(core::IEngine& engine)
     // later on to make sure that we don't have too many threads.
     systems_executor(std::thread::hardware_concurrency()) {
 
-    constexpr auto ARCHETYPE_BUFFER = 30;
-    archetypes.reserve(ARCHETYPE_BUFFER);
-    ent_to_archetype_key.reserve(ARCHETYPE_BUFFER);
+    constexpr auto ARCHETYPE_BUFFER_SIZE = 30;
+    archetypes.reserve(ARCHETYPE_BUFFER_SIZE);
+    ent_to_archetype_key.reserve(ARCHETYPE_BUFFER_SIZE);
 
-    constexpr auto QUEUE_BUFFER = 100;
-    creation_queue.reserve(QUEUE_BUFFER);
-    destroy_queue.reserve(QUEUE_BUFFER);
+    constexpr auto QUEUE_BUFFER_SIZE = 100;
+    creation_queue.reserve(QUEUE_BUFFER_SIZE);
+    destroy_queue.reserve(QUEUE_BUFFER_SIZE);
 }
 
 auto Hephaestus::start() -> void {}
@@ -127,6 +128,19 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
             }
         }
     }
+}
+
+auto Hephaestus::create_archetype_with_signature(
+    const ArchetypeKey signature,
+    const std::uint32_t entity_buffer_size
+) -> void {
+    const auto init_status = get_engine().get_engine_init_status();
+    assert(
+        init_status <= core::EngineInitStatus::RunningStart
+        && "Cannot create new archetypes after start."
+    );
+
+    archetypes.emplace(signature, std::make_unique<Archetype>(entity_buffer_size));
 }
 
 auto Hephaestus::destroy_entity(Entity entity) -> void {
