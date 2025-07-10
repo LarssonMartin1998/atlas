@@ -1,5 +1,6 @@
 #include <chrono>
 
+#include <cstdint>
 #include <gtest/gtest.h>
 
 #include "atlas/core/Engine.hpp"
@@ -425,5 +426,59 @@ TEST(HephaestusTest, DeletingEntities) {
     USE_SHOULD_STOP = true;
     Engine<TestGameDelete> engine;
     engine.run();
+}
+
+TEST(HephaestusTest, PreCreateArchetypes) {
+    struct CreateEntityComponent : Component<CreateEntityComponent> {
+        std::uint8_t max_creations = 5;
+    };
+
+    struct UniqueComponent : Component<UniqueComponent> {};
+
+    class TestArchetypeGame : public MockGame {
+      public:
+        auto pre_start() -> void override {
+            auto& hephaestus = get_engine().get_module<Hephaestus>();
+
+            hephaestus.create_entity(CreateEntityComponent{});
+            hephaestus.create_system(
+                [this,
+                 &hephaestus](const IEngine& engine, std::tuple<CreateEntityComponent&> data) {
+                    auto& [comp] = data;
+                    if (creation_count < comp.max_creations) {
+                        creation_count++;
+                        // This would assert if we didn't pre-create the archetype.
+                        hephaestus.create_entity(UniqueComponent{});
+                    }
+                }
+            );
+
+            // Without this, it would throw an assert later when we try to create an entity with
+            // this archetype post start. We dont allow archetype/system creation post start for
+            // thread scheduling and predictability reasons. However, entities must support creation
+            // after start in a game. If you need create entities later than start, pre create the
+            // archetype for that entity.
+            hephaestus.create_archetype<UniqueComponent>();
+        }
+
+        auto post_start() -> void override {
+            auto& hephaestus = get_engine().get_module<Hephaestus>();
+            hephaestus.tick();
+            hephaestus.tick();
+            hephaestus.tick();
+            hephaestus.tick();
+            hephaestus.tick();
+
+            EXPECT_EQ(creation_count, 5);
+
+            stop_game();
+        }
+
+      private:
+        std::uint8_t creation_count = 0;
+    };
+
+    USE_SHOULD_STOP = true;
+    Engine<TestArchetypeGame>{}.run();
 }
 } // namespace atlas::hephauestus::test
