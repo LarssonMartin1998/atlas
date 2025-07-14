@@ -147,11 +147,11 @@ auto Hephaestus::destroy_entity(Entity entity) -> void {
     destroy_queue.emplace_back(entity);
 }
 
-auto Hephaestus::get_tot_num_created_ents() const -> std::size_t {
+auto Hephaestus::get_tot_num_created_ents() const -> std::uint64_t {
     return tot_num_created_ents;
 }
 
-auto Hephaestus::get_tot_num_destroyed_ents() const -> std::size_t {
+auto Hephaestus::get_tot_num_destroyed_ents() const -> std::uint64_t {
     return tot_num_destroyed_ents;
 }
 } // namespace atlas::hephaestus
