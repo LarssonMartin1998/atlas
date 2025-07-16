@@ -106,12 +106,12 @@ auto Engine<G>::run() -> void {
     std::println("\nNum frames: {}", num_frames);
     std::println("Total runtime: {}\n", total_time);
 
-    if (const auto total_tick_time = clock.get_total_time_without_first_frame();
-        total_tick_time.has_value()) {
-        std::println("First frame: {}\n", total_time - *total_tick_time);
+    if (const auto result = clock.get_total_time_without_first_frame(); result.has_value()) {
+        const auto total_tick_time = *result;
+        std::println("First frame: {}\n", total_time - total_tick_time);
         std::println(
             "avg FPS(excluding first frame): {}",
-            static_cast<double>(num_frames) / *total_tick_time
+            static_cast<double>(num_frames) / total_tick_time
         );
     }
     std::println("avg FPS: {}", static_cast<double>(num_frames) / total_time);
