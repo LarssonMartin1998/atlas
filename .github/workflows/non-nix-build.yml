@@ -7,7 +7,7 @@ on:
 jobs:
   test-ubuntu:
     runs-on: ubuntu-24.04
-    name: Ubuntu 24.04 - Clang 18
+    name: Ubuntu 24.04 - Clang
     
     steps:
     - name: Checkout code
@@ -119,41 +119,3 @@ jobs:
       run: |
         cd build
         ctest --output-on-failure -C Release
-
-  test-compatibility:
-    runs-on: ubuntu-22.04
-    name: Compatibility Test - Ubuntu 22.04
-    continue-on-error: true
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        
-    - name: Install available compiler
-      run: |
-        sudo apt update
-        sudo apt install -y clang cmake ninja-build
-        
-    - name: Check compiler capabilities
-      run: |
-        clang++ --version
-        echo "Testing C++23 support..."
-        echo '#include <print>' | clang++ -std=c++23 -E - 2>&1 || echo "C++23 print not available"
-        echo "This test demonstrates the need for modern compilers"
-        
-    - name: Bootstrap vcpkg
-      run: ./setup-vcpkg.sh
-      
-    - name: Configure CMake (expected to fail on older compilers)
-      continue-on-error: true
-      run: |
-        cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
-          
-    - name: Build (if configure succeeded)
-      continue-on-error: true
-      run: cmake --build build --parallel
