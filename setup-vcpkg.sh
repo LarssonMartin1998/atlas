@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Bootstrap script for vcpkg on Unix systems (Linux/macOS)
 set -e
 
