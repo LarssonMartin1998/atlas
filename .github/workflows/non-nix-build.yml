@@ -66,18 +66,46 @@ jobs:
         
     - name: Verify compiler
       run: |
+        echo "=== System Clang Information ==="
         clang++ --version
-        echo '#include <print>' | clang++ -std=c++23 -E - || echo "C++23 print not available"
+        which clang++
+        echo "=== C++23 Feature Test ==="
+        echo '#include <print>' | clang++ -std=c++23 -E - > /dev/null 2>&1 && echo "✅ C++23 print available" || echo "❌ C++23 print not available"
+        echo "=== SDK Information ==="
+        xcrun --show-sdk-path
+        echo "=== Testing basic C++23 compilation ==="
+        echo 'int main() { return 0; }' | clang++ -std=c++23 -x c++ - -o /tmp/test && echo "✅ C++23 compilation works" || echo "❌ C++23 compilation failed"
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
       
     - name: Configure CMake
       run: |
-        cmake -B build -S . \
+        # First try with system clang
+        echo "=== Attempting configuration with system clang ==="
+        if cmake -B build -S . \
           -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
           -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
+          -G Ninja; then
+          echo "✅ Configuration successful with system clang"
+        else
+          echo "❌ Configuration failed with system clang"
+          echo "=== Installing Homebrew LLVM as fallback ==="
+          brew install llvm
+          export CC=/opt/homebrew/opt/llvm/bin/clang
+          export CXX=/opt/homebrew/opt/llvm/bin/clang++
+          export SDKROOT=$(xcrun --show-sdk-path)
+          rm -rf build
+          echo "=== Attempting configuration with Homebrew LLVM ==="
+          cmake -B build -S . \
+            -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang \
+            -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ \
+            -DCMAKE_CXX_FLAGS="-isysroot $(xcrun --show-sdk-path)" \
+            -DCMAKE_C_FLAGS="-isysroot $(xcrun --show-sdk-path)"
+        fi
           
     - name: Build
       run: cmake --build build --parallel
