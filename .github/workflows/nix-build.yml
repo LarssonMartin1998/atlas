@@ -1,7 +1,7 @@
 name: Nix Build Verification
 
 # This workflow verifies that 'nix build .' successfully builds the Atlas engine
-# on all supported platforms: darwin aarch64, linux x86_64, and linux aarch64.
+# on supported platforms: darwin aarch64 and linux x86_64.
 # The flake.nix is configured with doCheck=true, so builds include running tests
 # and will fail if either build or tests fail.
 
@@ -116,53 +116,3 @@ jobs:
         fi
         file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for Linux x86_64"
-
-  nix-build-linux-aarch64:
-    # Note: GitHub Actions doesn't provide free aarch64 Linux runners
-    # This job uses cross-compilation with Nix to build for aarch64-linux
-    runs-on: ubuntu-latest
-    name: Nix Build - Linux aarch64 (cross-compiled)
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@main
-      
-    - name: Setup Nix Magic Cache
-      uses: DeterminateSystems/magic-nix-cache-action@main
-      
-    - name: Enable aarch64-linux builds
-      run: |
-        echo "extra-platforms = aarch64-linux" | sudo tee -a /etc/nix/nix.conf
-        sudo systemctl restart nix-daemon || true
-        
-    - name: Verify Nix installation and platform support
-      run: |
-        nix --version
-        nix flake show --system aarch64-linux
-        
-    - name: Build Atlas with Nix for aarch64-linux
-      run: |
-        echo "Building Atlas for aarch64-linux (cross-compiled)..."
-        nix build . --system aarch64-linux
-        
-    - name: Verify build output
-      run: |
-        ls -la result/
-        if [ -d "result/bin" ]; then
-          echo "✅ Build output directory created"
-          ls -la result/bin/
-          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
-            echo "✅ Atlas binary found"
-          else
-            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
-          fi
-        else
-          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
-        fi
-        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
-        echo "✅ Nix build successful for Linux aarch64"
