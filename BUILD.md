@@ -54,7 +54,7 @@ This will:
 **Using CMake directly:**
 ```bash
 # Configure
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 # Build
 cmake --build build --parallel
