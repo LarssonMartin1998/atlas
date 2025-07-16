@@ -1,0 +1,13 @@
+{
+  "name": "atlas",
+  "version": "0.1.0",
+  "description": "Atlas game engine dependencies",
+  "dependencies": [
+    {
+      "name": "taskflow",
+      "version>=": "3.10.0"
+    },
+    "gtest"
+  ],
+  "builtin-baseline": "b509a07261b982f35c663bf638aae5f77877d207"
+}

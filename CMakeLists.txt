@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.30)
 
+# Detect and set up vcpkg if available (for non-Nix users)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Vcpkg toolchain file")
+    message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+endif()
+
 # Only define the project if not included as a subdirectory, this is important
 # because it won't work if included as a subdirectory from a game project
 # otherwise.

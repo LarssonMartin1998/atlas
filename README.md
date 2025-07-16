@@ -75,14 +75,16 @@ Make sure your flake defines a `packages.daedalus-windows` output using `pkgs.pk
 
 ### Non-Nix Users
 
-You’ll need to manually install the dependencies defined in [`flake.nix`](./flake.nix). This includes a modern C++23 toolchain and required libraries/tools.
+**⚠️ Important:** Atlas is designed with Nix as the first-class citizen build environment. While we provide alternative build instructions, they require modern C++23 compiler support and may need additional configuration.
 
-- Ensure your system has the appropriate compiler, libraries, and C++23 headers.
-- Build using your preferred workflow (e.g., CMake + Ninja) or use the included Makefile for convenience.
-- Common workflow using the Makefile usually looks like: `make clean setup build run` and `make build run` for incremental builds.
+For detailed non-Nix build instructions, see **[BUILD.md](./BUILD.md)**.
 
-> ⚠️ Without Nix, setup may require additional configuration due to compiler support and library paths.
+**Quick start for non-Nix users:**
+1. Ensure you have Clang 18+ or GCC 14+ with full C++23 support
+2. Run the setup script: `./setup-vcpkg.sh` (Linux/macOS) or `setup-vcpkg.bat` (Windows)
+3. Build: `cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake && cmake --build build`
 
+> 💡 **Recommendation:** If you're having compiler or dependency issues, consider using the Nix environment even on non-NixOS systems for the most reliable development experience.
 ---
 
 ## Notes
