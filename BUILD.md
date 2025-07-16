@@ -51,6 +51,8 @@ This will:
 
 ### Step 3: Configure and Build
 
+> If you're having trouble building your platform, look at the CI build pipeline for Non Nix builds on your respective platform: atlas/.github/workflows/non-nix-build.yaml
+
 **Using CMake directly:**
 ```bash
 # Configure
