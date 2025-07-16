@@ -86,17 +86,22 @@ jobs:
         if cmake -B build -S . \
           -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
           -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja; then
+          -G Ninja 2>&1; then
           echo "✅ Configuration successful with system clang"
         else
-          echo "❌ Configuration failed with system clang"
+          echo "❌ Configuration failed with system clang, trying Homebrew LLVM fallback..."
           echo "=== Installing Homebrew LLVM as fallback ==="
           brew install llvm
+          
+          # Set up environment for Homebrew LLVM
           export CC=/opt/homebrew/opt/llvm/bin/clang
           export CXX=/opt/homebrew/opt/llvm/bin/clang++
           export SDKROOT=$(xcrun --show-sdk-path)
+          
+          # Clean up failed build directory
           rm -rf build
-          echo "=== Attempting configuration with Homebrew LLVM ==="
+          
+          echo "=== Attempting configuration with Homebrew LLVM and system headers ==="
           cmake -B build -S . \
             -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_BUILD_TYPE=Release \
@@ -104,7 +109,15 @@ jobs:
             -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang \
             -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ \
             -DCMAKE_CXX_FLAGS="-isysroot $(xcrun --show-sdk-path)" \
-            -DCMAKE_C_FLAGS="-isysroot $(xcrun --show-sdk-path)"
+            -DCMAKE_C_FLAGS="-isysroot $(xcrun --show-sdk-path)" || {
+              echo "❌ Configuration failed with Homebrew LLVM as well"
+              echo "=== Debug Information ==="
+              echo "SDK Root: $(xcrun --show-sdk-path)"
+              echo "LLVM Clang version:"
+              /opt/homebrew/opt/llvm/bin/clang++ --version
+              exit 1
+            }
+          echo "✅ Configuration successful with Homebrew LLVM"
         fi
           
     - name: Build
