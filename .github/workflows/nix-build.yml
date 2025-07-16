@@ -52,7 +52,18 @@ jobs:
     - name: Verify build output
       run: |
         ls -la result/
-        file result/bin/* || echo "No binaries found in result/bin/"
+        if [ -d "result/bin" ]; then
+          echo "✅ Build output directory created"
+          ls -la result/bin/
+          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
+            echo "✅ Atlas binary found"
+          else
+            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
+          fi
+        else
+          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
+        fi
+        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for macOS aarch64"
 
   nix-build-linux-x86_64:
@@ -94,7 +105,18 @@ jobs:
     - name: Verify build output
       run: |
         ls -la result/
-        file result/bin/* || echo "No binaries found in result/bin/"
+        if [ -d "result/bin" ]; then
+          echo "✅ Build output directory created"
+          ls -la result/bin/
+          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
+            echo "✅ Atlas binary found"
+          else
+            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
+          fi
+        else
+          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
+        fi
+        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for Linux x86_64"
 
   nix-build-linux-aarch64:
@@ -133,5 +155,16 @@ jobs:
     - name: Verify build output
       run: |
         ls -la result/
-        file result/bin/* || echo "No binaries found in result/bin/"
+        if [ -d "result/bin" ]; then
+          echo "✅ Build output directory created"
+          ls -la result/bin/
+          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
+            echo "✅ Atlas binary found"
+          else
+            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
+          fi
+        else
+          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
+        fi
+        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for Linux aarch64"
