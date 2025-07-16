@@ -8,8 +8,3 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake" A
     message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
-# External library dependencies
-function(setup_non_nix_dependencies)
-    # No non-Nix specific dependencies currently
-    # Core dependencies like Taskflow are handled by individual modules
-endfunction()

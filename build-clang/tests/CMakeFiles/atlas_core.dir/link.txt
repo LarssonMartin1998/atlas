@@ -1,0 +1,1 @@
+/usr/bin/clang++ -g -Xlinker --dependency-file=CMakeFiles/atlas_core.dir/link.d CMakeFiles/atlas_core.dir/TestMain.cpp.o CMakeFiles/atlas_core.dir/HephaestusTests.cpp.o -o atlas_core  ../libatlas.a ../vcpkg_installed/x64-linux/debug/lib/manual-link/libgtest_main.a -latomic ../vcpkg_installed/x64-linux/debug/lib/libgtest.a

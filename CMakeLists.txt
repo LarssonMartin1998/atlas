@@ -28,8 +28,7 @@ add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
 include(SetupModules.cmake)
 
-# Setup external dependencies for non-Nix builds
-setup_non_nix_dependencies()
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)
