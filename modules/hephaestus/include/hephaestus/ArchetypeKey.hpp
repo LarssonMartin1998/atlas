@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cstdint>
 #include <functional>
 #include <string_view>
@@ -34,7 +35,7 @@ class ArchetypeKey {
 
     constexpr auto operator<(const ArchetypeKey& other) const -> bool {
         // Lexicographic comparison
-        for (size_t i = 0; i < STORAGE_SIZE; ++i) {
+        for (std::size_t i = 0; i < STORAGE_SIZE; ++i) {
             if (storage.at(i) != other.storage.at(i)) {
                 return storage.at(i) < other.storage.at(i);
             }
@@ -47,14 +48,14 @@ class ArchetypeKey {
     }
 
     [[nodiscard]] constexpr auto has_component(size_t component_id) const -> bool {
-        const std::size_t bucket = component_id / 64;
-        const std::size_t bit = component_id % 64;
+        const auto bucket = component_id / 64;
+        const auto bit = component_id % 64;
         return bucket < STORAGE_SIZE && (storage.at(bucket) & (1ULL << bit)) != 0;
     }
 
-    constexpr auto add_component(size_t component_id) -> ArchetypeKey& {
-        const std::size_t bucket = component_id / 64;
-        const std::size_t bit = component_id % 64;
+    constexpr auto add_component(std::size_t component_id) -> ArchetypeKey& {
+        const auto bucket = component_id / 64;
+        const auto bit = component_id % 64;
         if (bucket < STORAGE_SIZE) {
             storage.at(bucket) |= (1ULL << bit);
         }
@@ -62,7 +63,7 @@ class ArchetypeKey {
     }
 
     [[nodiscard]] constexpr auto is_subset_of(const ArchetypeKey& other) const -> bool {
-        for (size_t i = 0; i < STORAGE_SIZE; ++i) {
+        for (std::size_t i = 0; i < STORAGE_SIZE; ++i) {
             if ((storage.at(i) & other.storage.at(i)) != storage.at(i)) {
                 return false;
             }
@@ -71,7 +72,7 @@ class ArchetypeKey {
     }
 
     [[nodiscard]] constexpr auto intersects_with(const ArchetypeKey& other) const -> bool {
-        for (size_t i = 0; i < STORAGE_SIZE; ++i) {
+        for (std::size_t i = 0; i < STORAGE_SIZE; ++i) {
             if ((storage.at(i) & other.storage.at(i)) != 0) {
                 return true;
             }
@@ -79,10 +80,10 @@ class ArchetypeKey {
         return false;
     }
 
-    [[nodiscard]] constexpr auto count_components() const -> int {
-        int count = 0;
+    [[nodiscard]] constexpr auto count_components() const -> std::uint32_t {
+        std::uint32_t count = 0;
         for (const auto& bucket : storage) {
-            count += __builtin_popcountll(bucket);
+            count += static_cast<std::uint32_t>(std::popcount((bucket)));
         }
         return count;
     }

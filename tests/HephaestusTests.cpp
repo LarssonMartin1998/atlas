@@ -25,13 +25,13 @@ struct Velocity : public Component<Velocity> {
 };
 
 struct Health : public Component<Health> {
-    int value;
+    std::uint32_t value;
 };
 
 struct TestState {
-    int physics_runs = 0;
-    int renderer_runs = 0;
-    int health_checker_runs = 0;
+    std::uint32_t physics_runs = 0;
+    std::uint32_t renderer_runs = 0;
+    std::uint32_t health_checker_runs = 0;
     std::vector<Position> final_positions;
 };
 
@@ -67,13 +67,11 @@ class MockGame : public IGame {
 
             hephaestus.create_system([](const IEngine& engine,
                                         std::tuple<const Position&, const Velocity&> components) {
-                const auto& [pos, vel] = components;
                 TEST_STATE->renderer_runs++;
             });
 
             hephaestus.create_system([](const IEngine& engine,
                                         std::tuple<const Health&> components) {
-                const auto& [health] = components;
                 TEST_STATE->health_checker_runs++;
             });
         }
@@ -104,8 +102,10 @@ class MockGame : public IGame {
             return false;
         }
 
-        auto now = std::chrono::steady_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time);
+        const auto now = std::chrono::steady_clock::now();
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - start_time
+        );
         return elapsed.count() > 40;
     }
 
@@ -116,20 +116,20 @@ class MockGame : public IGame {
 };
 
 TEST(HephaestusTest, SystemDependenciesGeneration) {
-    auto const_signature = make_system_dependencies<const Position&, const Velocity&>();
+    const auto const_signature = make_system_dependencies<const Position&, const Velocity&>();
     EXPECT_EQ(const_signature.size(), 2);
     EXPECT_TRUE(const_signature[0].is_read_only);
     EXPECT_TRUE(const_signature[1].is_read_only);
 
     // Test mixed const/non-const
-    auto mixed_signature = make_system_dependencies<const Position&, Velocity&>();
+    const auto mixed_signature = make_system_dependencies<const Position&, Velocity&>();
     EXPECT_EQ(mixed_signature.size(), 2);
 
     // Find Position and Velocity in the sorted signature
-    auto pos_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
+    const auto pos_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
         return access.type == std::type_index(typeid(Position));
     });
-    auto vel_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
+    const auto vel_it = std::ranges::find_if(mixed_signature, [](const SystemDependencies& access) {
         return access.type == std::type_index(typeid(Velocity));
     });
 
@@ -140,43 +140,43 @@ TEST(HephaestusTest, SystemDependenciesGeneration) {
 }
 
 TEST(HephaestusTest, SystemConflictDetection) {
-    auto read_only_1 = make_system_dependencies<const Position&, const Velocity&>();
-    auto read_only_2 = make_system_dependencies<const Position&>();
+    const auto read_only_1 = make_system_dependencies<const Position&, const Velocity&>();
+    const auto read_only_2 = make_system_dependencies<const Position&>();
     EXPECT_FALSE(are_dependencies_overlapping(read_only_1, read_only_2));
 
-    auto write_pos = make_system_dependencies<Position&, const Velocity&>();
+    const auto write_pos = make_system_dependencies<Position&, const Velocity&>();
     EXPECT_TRUE(are_dependencies_overlapping(read_only_1, write_pos));
 
-    auto health_reader = make_system_dependencies<const Health&>();
+    const auto health_reader = make_system_dependencies<const Health&>();
     EXPECT_FALSE(are_dependencies_overlapping(read_only_1, health_reader));
 
-    auto empty_access = make_system_dependencies<>();
+    const auto empty_access = make_system_dependencies<>();
     EXPECT_TRUE(empty_access.empty());
 
-    auto pos_sig = make_system_dependencies<const Position&>();
+    const auto pos_sig = make_system_dependencies<const Position&>();
     EXPECT_FALSE(are_dependencies_overlapping(empty_access, pos_sig));
     EXPECT_FALSE(are_dependencies_overlapping(pos_sig, empty_access));
 
-    auto audio_sig = make_system_dependencies<const Position&>();
-    auto ui_sig = make_system_dependencies<const Position&, const Velocity&>();
-    auto logger_sig = make_system_dependencies<const Position&>();
+    const auto audio_sig = make_system_dependencies<const Position&>();
+    const auto ui_sig = make_system_dependencies<const Position&, const Velocity&>();
+    const auto logger_sig = make_system_dependencies<const Position&>();
 
     EXPECT_FALSE(are_dependencies_overlapping(audio_sig, ui_sig));
     EXPECT_FALSE(are_dependencies_overlapping(audio_sig, logger_sig));
     EXPECT_FALSE(are_dependencies_overlapping(ui_sig, logger_sig));
 
-    auto physics_sig = make_system_dependencies<Position&, const Velocity&>();
+    const auto physics_sig = make_system_dependencies<Position&, const Velocity&>();
     EXPECT_TRUE(are_dependencies_overlapping(audio_sig, physics_sig));
     EXPECT_TRUE(are_dependencies_overlapping(ui_sig, physics_sig));
     EXPECT_TRUE(are_dependencies_overlapping(logger_sig, physics_sig));
 }
 
 TEST(HephaestusTest, TypeSignatureGeneration) {
-    auto signature = make_archetype_key<Position, Velocity>();
+    const auto signature = make_archetype_key<Position, Velocity>();
     EXPECT_EQ(signature.count_components(), 2);
 
-    auto pos_id = get_component_type_id<Position>();
-    auto vel_id = get_component_type_id<Velocity>();
+    const auto pos_id = get_component_type_id<Position>();
+    const auto vel_id = get_component_type_id<Velocity>();
 
     EXPECT_TRUE(signature.has_component(pos_id));
     EXPECT_TRUE(signature.has_component(vel_id));
@@ -221,18 +221,18 @@ TEST(HephaestusTest, ActualSystemCreationAndExecution) {
 }
 
 TEST(HephaestusTest, ArchetypeKeyGeneration) {
-    auto pos_sig = make_archetype_key<Position>();
-    auto vel_sig = make_archetype_key<Velocity>();
-    auto health_sig = make_archetype_key<Health>();
-    auto empty_type = make_archetype_key<>();
+    const auto pos_sig = make_archetype_key<Position>();
+    const auto vel_sig = make_archetype_key<Velocity>();
+    const auto health_sig = make_archetype_key<Health>();
+    const auto empty_type = make_archetype_key<>();
 
     EXPECT_TRUE(empty_type.empty());
     EXPECT_NE(pos_sig, vel_sig);
     EXPECT_NE(vel_sig, health_sig);
     EXPECT_NE(pos_sig, health_sig);
 
-    auto pos_vel_sig = make_archetype_key<Position, Velocity>();
-    auto vel_health_sig = make_archetype_key<Velocity, Health>();
+    const auto pos_vel_sig = make_archetype_key<Position, Velocity>();
+    const auto vel_health_sig = make_archetype_key<Velocity, Health>();
 
     EXPECT_NE(pos_vel_sig, pos_sig);
     EXPECT_NE(pos_vel_sig, vel_sig);
@@ -243,9 +243,9 @@ TEST(HephaestusTest, ArchetypeKeyGeneration) {
 }
 
 TEST(HephaestusTest, ArchetypeKeyOperations) {
-    auto pos_sig = make_archetype_key<Position>();
-    auto vel_sig = make_archetype_key<Velocity>();
-    auto pos_vel_sig = make_archetype_key<Position, Velocity>();
+    const auto pos_sig = make_archetype_key<Position>();
+    const auto vel_sig = make_archetype_key<Velocity>();
+    const auto pos_vel_sig = make_archetype_key<Position, Velocity>();
 
     EXPECT_TRUE(pos_sig.is_subset_of(pos_vel_sig));
     EXPECT_TRUE(vel_sig.is_subset_of(pos_vel_sig));
@@ -262,14 +262,14 @@ TEST(HephaestusTest, ArchetypeKeyOperations) {
 }
 
 TEST(HephaestusTest, ArchetypeKeyConsistency) {
-    auto sig1 = make_archetype_key<Position, Velocity>();
-    auto sig2 = make_archetype_key<Velocity, Position>();
+    const auto sig1 = make_archetype_key<Position, Velocity>();
+    const auto sig2 = make_archetype_key<Velocity, Position>();
 
     EXPECT_EQ(sig1, sig2) << "Archetype key should be order-independent";
 
-    auto sig3 = make_archetype_key<const Position, Velocity>();
-    auto sig4 = make_archetype_key<Position, const Velocity>();
-    auto sig5 = make_archetype_key<const Position, const Velocity>();
+    const auto sig3 = make_archetype_key<const Position, Velocity>();
+    const auto sig4 = make_archetype_key<Position, const Velocity>();
+    const auto sig5 = make_archetype_key<const Position, const Velocity>();
 
     EXPECT_EQ(sig1, sig3) << "const qualifiers should not affect archetype key";
     EXPECT_EQ(sig1, sig4) << "const qualifiers should not affect archetype key";
@@ -277,21 +277,21 @@ TEST(HephaestusTest, ArchetypeKeyConsistency) {
 }
 
 TEST(HephaestusTest, ArchetypeKeyHash) {
-    auto sig1 = make_archetype_key<Position, Velocity>();
-    auto sig2 = make_archetype_key<Position, Velocity>();
+    const auto sig1 = make_archetype_key<Position, Velocity>();
+    const auto sig2 = make_archetype_key<Position, Velocity>();
 
     ArchetypeKeyHash hasher;
     EXPECT_EQ(hasher(sig1), hasher(sig2)) << "Equal keys should have equal hashes";
 
-    auto sig3 = make_archetype_key<Position, Health>();
+    const auto sig3 = make_archetype_key<Position, Health>();
     EXPECT_NE(hasher(sig1), hasher(sig3)) << "Different keys should have different hashes";
 }
 
 TEST(HephaestusTest, ArchetypeMapCompatibility) {
     ArchetypeMap map;
 
-    auto sig1 = make_archetype_key<Position>();
-    auto sig2 = make_archetype_key<Position, Velocity>();
+    const auto sig1 = make_archetype_key<Position>();
+    const auto sig2 = make_archetype_key<Position, Velocity>();
 
     constexpr auto ENTITY_BUFFER_SIZE_GUESS = 500;
     map[sig1] = std::make_unique<Archetype>(ENTITY_BUFFER_SIZE_GUESS);
@@ -301,59 +301,64 @@ TEST(HephaestusTest, ArchetypeMapCompatibility) {
     EXPECT_TRUE(map.contains(sig1));
     EXPECT_TRUE(map.contains(sig2));
 
-    auto sig3 = make_archetype_key<Health>();
+    const auto sig3 = make_archetype_key<Health>();
     EXPECT_FALSE(map.contains(sig3));
 }
 
 TEST(HephaestusTest, PerformanceComparison) {
     using namespace std::chrono;
 
-    const auto num_iterations = 10000;
+    constexpr auto NUM_ITERATIONS = 10000;
 
-    auto start_test = high_resolution_clock::now();
+    const auto start_test = high_resolution_clock::now();
     ArchetypeKeyHash hasher;
-    for (int i = 0; i < num_iterations; ++i) {
-        auto signature = make_archetype_key<Position, Velocity, Health>();
+    for (std::size_t i = 0; i < NUM_ITERATIONS; ++i) {
+        const auto signature = make_archetype_key<Position, Velocity, Health>();
         volatile auto hash = hasher(signature); // volatile to prevent optimization
         (void)hash;                             // Avoid unused variable warning
     }
-    auto end_test = high_resolution_clock::now();
-    auto test_duration = duration_cast<microseconds>(end_test - start_test);
+    const auto end_test = high_resolution_clock::now();
+    const auto test_duration = duration_cast<microseconds>(end_test - start_test);
 
-    std::cout << "ArchetypeKey system: " << test_duration.count() << " microseconds for "
-              << num_iterations << " iterations\n";
+    std::println(
+        "ArchetypeKey system: {} microseconds for {} iterations",
+        test_duration.count(),
+        NUM_ITERATIONS
+    );
 
     // Verify performance is reasonable (should complete in well under a second)
     EXPECT_LT(test_duration.count(), 1000000) << "ArchetypeKey operations should be fast";
 
-    auto sig1 = make_archetype_key<Position, Velocity>();
-    auto sig2 = make_archetype_key<Position, Health>();
+    const auto sig1 = make_archetype_key<Position, Velocity>();
+    const auto sig2 = make_archetype_key<Position, Health>();
 
-    auto start_ops = high_resolution_clock::now();
-    for (int i = 0; i < num_iterations; ++i) {
-        volatile bool subset = sig1.is_subset_of(sig2);
-        volatile bool intersects = sig1.intersects_with(sig2);
-        volatile int count = sig1.count_components();
+    const auto start_ops = high_resolution_clock::now();
+    for (std::size_t i = 0; i < NUM_ITERATIONS; ++i) {
+        const volatile auto subset = sig1.is_subset_of(sig2);
+        const volatile auto intersects = sig1.intersects_with(sig2);
+        const volatile auto count = sig1.count_components();
         (void)subset;
         (void)intersects;
         (void)count; // Avoid unused variable warnings
     }
-    auto end_ops = high_resolution_clock::now();
-    auto ops_duration = duration_cast<microseconds>(end_ops - start_ops);
+    const auto end_ops = high_resolution_clock::now();
+    const auto ops_duration = duration_cast<microseconds>(end_ops - start_ops);
 
-    std::cout << "ArchetypeKey operations: " << ops_duration.count() << " microseconds for "
-              << num_iterations << " iterations\n";
-
+    std::println(
+        "ArchetypeKey operations: {} microseconds for {} iterations.",
+        ops_duration.count(),
+        NUM_ITERATIONS
+    );
     // Operations should be very fast (constant time)
     EXPECT_LT(ops_duration.count(), 100000) // Less than 0.1 seconds
         << "ArchetypeKey operations should be constant time and very fast";
 }
 
 TEST(HephaestusTest, MemoryFootprintComparison) {
-    auto signature = make_archetype_key<Position, Velocity, Health>();
+    const auto signature = make_archetype_key<Position, Velocity, Health>();
 
-    std::size_t signature_size = sizeof(signature);
-    std::cout << "ArchetypeKey memory footprint: " << signature_size << " bytes\n";
+    const std::size_t signature_size = sizeof(signature);
+    std::println("ArchetypeKey memory footprint: {} bytes", signature_size);
 
     EXPECT_EQ(signature_size, sizeof(ArchetypeKey::StorageType))
         << "ArchetypeKey should only contain the storage array";

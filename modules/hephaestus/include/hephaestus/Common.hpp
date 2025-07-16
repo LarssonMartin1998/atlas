@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace atlas::hephaestus {
-using Entity = unsigned;
+using Entity = std::uint32_t;
 } // namespace atlas::hephaestus
