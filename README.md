@@ -75,16 +75,11 @@ Make sure your flake defines a `packages.daedalus-windows` output using `pkgs.pk
 
 ### Non-Nix Users
 
-**⚠️ Important:** Atlas is designed with Nix as the first-class citizen build environment. While we provide alternative build instructions, they require modern C++23 compiler support and may need additional configuration.
+**⚠️ Important:** Atlas is designed with Nix as the first-class citizen build environment. While we provide alternative build instructions, they may need additional configuration.
 
 For detailed non-Nix build instructions, see **[BUILD.md](./BUILD.md)**.
 
-**Quick start for non-Nix users:**
-1. Ensure you have Clang 18+ or GCC 14+ with full C++23 support
-2. Run the setup script: `./setup-vcpkg.sh` (Linux/macOS) or `setup-vcpkg.bat` (Windows)
-3. Build: `cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake && cmake --build build`
-
-> 💡 **Recommendation:** If you're having compiler or dependency issues, consider using the Nix environment even on non-NixOS systems for the most reliable development experience.
+> 💡 **Recommendation:** Consider using the Nix environment even on non-NixOS systems for the most reliable development experience.
 ---
 
 ## Notes

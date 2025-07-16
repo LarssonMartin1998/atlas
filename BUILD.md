@@ -104,6 +104,7 @@ cmake --build build --parallel
 **Alternative: Using Make wrapper (convenience):**
 ```bash
 # This uses vcpkg automatically if available
+# Note: This method does not work on Windows - use the cmake commands above instead
 make setup build
 ```
 
@@ -178,14 +179,6 @@ target_link_libraries(your_game PRIVATE atlas::atlas)
 ```
 
 Atlas automatically handles vcpkg integration when included as a subdirectory.
-
-## Alternative: Docker Development Environment
-
-For consistent builds across platforms, consider using the provided Docker setup:
-
-```bash
-# TODO: Docker setup will be added in future updates
-```
 
 ---
 

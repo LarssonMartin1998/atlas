@@ -48,6 +48,8 @@
 
           shellHook = ''
             export CXXFLAGS="$NIX_CFLAGS_COMPILE"
+            # Clean up any existing vcpkg temporary files when entering nix shell
+            rm -rf vcpkg/buildtrees vcpkg/downloads vcpkg/packages vcpkg/installed 2>/dev/null || true
           '';
         };
 
