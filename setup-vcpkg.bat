@@ -19,6 +19,4 @@ if not exist "vcpkg\vcpkg.exe" (
 )
 
 echo vcpkg setup complete!
-echo You can now build the project using:
-echo   cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
-echo   cmake --build build
+echo Read the BUILD.md for build instructions!
