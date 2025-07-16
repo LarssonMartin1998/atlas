@@ -19,17 +19,6 @@ You will need the following tools and libraries installed on your system:
 - **Ninja build system** (recommended for faster builds)
 - **Git** (for cloning and submodule management)
 
-### Platform-Specific Notes
-
-#### Linux
-Requires Ubuntu 24.04+, Debian 12+, or equivalent distributions with modern compiler support.
-
-#### macOS
-Requires macOS with Xcode Command Line Tools or full Xcode installation.
-
-#### Windows
-Requires Windows 10/11 with either Visual Studio 2022 (17.8+) or LLVM/Clang toolchain.
-
 ## Building Atlas
 
 ### Step 1: Clone and Setup Dependencies
@@ -58,7 +47,7 @@ setup-vcpkg.bat
 This will:
 - Initialize the vcpkg submodule
 - Bootstrap vcpkg for your platform
-- Download and build required dependencies (taskflow, gtest)
+- Download and build required dependencies (taskflow, gtest, etc...)
 
 ### Step 3: Configure and Build
 
@@ -126,20 +115,6 @@ If you encounter errors related to missing C++23 features:
    git pull
    cd ..
    ```
-
-### Platform-Specific Issues
-
-**Linux:**
-- Ensure you have libc++ headers for Clang
-- Install `libc++-dev` and `libc++abi-dev` if using Clang
-
-**macOS:**
-- Ensure Xcode Command Line Tools are up to date
-- Use `brew install llvm` for latest LLVM if system version is too old
-
-**Windows:**
-- Use the "Developer Command Prompt for VS 2022" when building
-- Ensure Windows SDK is installed with Visual Studio
 
 ## Integration with Game Projects
 
