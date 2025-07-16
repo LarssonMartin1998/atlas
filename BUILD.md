@@ -6,56 +6,29 @@ This document provides build instructions for developers who are not using Nix. 
 
 Atlas is a modern C++23 game engine that requires cutting-edge compiler support. Before building, ensure your system meets these requirements:
 
-### Compiler Requirements
+### Dependencies
 
-**Minimum Required:**
-- **Clang 18+** or **GCC 14+** with full C++23 support
-- Support for `std::print`, `std::ranges::to`, and other C++23 features
+You will need the following tools and libraries installed on your system:
 
-**Recommended:**
-- **Clang 20** (same as used in the Nix environment)
-- **LLVM/Clang tools** for development
+- **C++23 compatible compiler:**
+  - Clang 18+ (recommended: Clang 20)
+  - GCC 14+
+  - Visual Studio 2022 (17.8+) on Windows
+- **C++23 standard library** with support for `std::print`, `std::ranges::to`, and other modern features
+- **CMake 3.20+**
+- **Ninja build system** (recommended for faster builds)
+- **Git** (for cloning and submodule management)
 
-### Platform-Specific Setup
+### Platform-Specific Notes
 
-#### Linux (Ubuntu 24.04+, Debian 12+, or equivalent)
-
-```bash
-# Install modern compiler (if not available, consider using a PPA or newer distro)
-sudo apt update
-sudo apt install clang-18 clang++-18 cmake ninja-build git
-
-# Set as default (optional)
-sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
-```
+#### Linux
+Requires Ubuntu 24.04+, Debian 12+, or equivalent distributions with modern compiler support.
 
 #### macOS
-
-```bash
-# Install Xcode Command Line Tools or full Xcode
-xcode-select --install
-
-# Or install via Homebrew for latest LLVM
-brew install llvm cmake ninja
-```
+Requires macOS with Xcode Command Line Tools or full Xcode installation.
 
 #### Windows
-
-**Option 1: Visual Studio 2022 (17.8+)**
-- Install Visual Studio 2022 with C++ workload
-- Ensure C++23 standard library support is enabled
-
-**Option 2: Clang/LLVM**
-```powershell
-# Using winget
-winget install LLVM.LLVM
-winget install Kitware.CMake
-winget install Ninja-build.Ninja
-
-# Or using Chocolatey
-choco install llvm cmake ninja
-```
+Requires Windows 10/11 with either Visual Studio 2022 (17.8+) or LLVM/Clang toolchain.
 
 ## Building Atlas
 
