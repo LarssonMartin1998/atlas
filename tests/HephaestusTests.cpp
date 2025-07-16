@@ -430,8 +430,7 @@ TEST(HephaestusTest, DeletingEntities) {
     };
 
     USE_SHOULD_STOP = true;
-    Engine<TestGameDelete> engine;
-    engine.run();
+    Engine<TestGameDelete>{}.run();
 }
 
 TEST(HephaestusTest, PreCreateArchetypes) {
