@@ -28,8 +28,6 @@ add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
 include(SetupModules.cmake)
 
-
-
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)
 add_subdirectory(src)
@@ -48,6 +46,8 @@ endif()
 if(ENABLE_INSTALL AND BUILDING_ONLY_ATLAS)
   install(TARGETS atlas DESTINATION lib)
 endif()
+
+target_compile_options(atlas PRIVATE -Wno-invalid-constexpr)
 
 # target_compile_definitions(atlas PRIVATE $<$<CONFIG:Debug>:U_FORTIFY_SOURCE>)
 # target_compile_options( atlas PRIVATE # ────────── flags common to *every*

@@ -13,11 +13,11 @@ struct SystemDependencies {
     std::type_index type;
     bool is_read_only;
 
-    auto operator==(const SystemDependencies& other) const -> bool {
+    constexpr auto operator==(const SystemDependencies& other) const -> bool {
         return type == other.type && is_read_only == other.is_read_only;
     }
 
-    auto operator<=>(const SystemDependencies& other) const -> std::strong_ordering {
+    constexpr auto operator<=>(const SystemDependencies& other) const -> std::strong_ordering {
         if (type != other.type) {
             return type < other.type ? std::strong_ordering::less : std::strong_ordering::greater;
         }
