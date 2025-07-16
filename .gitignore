@@ -1,5 +1,6 @@
 # CMake
 build/
+build-*/
 CMakeUserPresets.json
 .cache/
 compile_commands.json
@@ -7,3 +8,14 @@ grep
 generated/include/
 generated/src/
 result
+
+# vcpkg
+vcpkg_installed/
+vcpkg/downloads/
+vcpkg/buildtrees/
+vcpkg/packages/
+vcpkg/installed/
+
+# Demo files
+demo-vcpkg.sh
+build-demo/

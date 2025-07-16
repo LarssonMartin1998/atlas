@@ -1,0 +1,144 @@
+# Building Atlas (Non-Nix Users)
+
+This document provides build instructions for developers who are not using Nix. **Please note**: Nix is the first-class citizen build environment for Atlas, and these instructions are provided as a convenience for developers who cannot or prefer not to use Nix.
+
+## Prerequisites
+
+Atlas is a modern C++23 game engine that requires cutting-edge compiler support. Before building, ensure your system meets these requirements:
+
+### Dependencies
+
+You will need the following tools and libraries installed on your system:
+
+- **C++23 compatible compiler:**
+  - Clang 18+ (recommended: Clang 20)
+  - GCC 14+
+  - Visual Studio 2022 (17.8+) on Windows
+- **C++23 standard library** with support for `std::print`, `std::ranges::to`, and other modern features
+- **CMake 3.20+**
+- **Ninja build system** (recommended for faster builds)
+- **Git** (for cloning and submodule management)
+
+## Building Atlas
+
+### Step 1: Clone and Setup Dependencies
+
+```bash
+# Clone the repository
+git clone https://github.com/LarssonMartin1998/atlas.git
+cd atlas
+
+# Initialize submodules (including vcpkg)
+git submodule update --init --recursive
+```
+
+### Step 2: Bootstrap vcpkg
+
+**Linux/macOS:**
+```bash
+./setup-vcpkg.sh
+```
+
+**Windows:**
+```bat
+setup-vcpkg.bat
+```
+
+This will:
+- Initialize the vcpkg submodule
+- Bootstrap vcpkg for your platform
+- Download and build required dependencies (taskflow, gtest, etc...)
+
+### Step 3: Configure and Build
+
+**Using CMake directly:**
+```bash
+# Configure
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+# Build
+cmake --build build --parallel
+```
+
+**Alternative: Using Make wrapper (convenience):**
+```bash
+# This uses vcpkg automatically if available
+# Note: This method does not work on Windows - use the cmake commands above instead
+make setup build
+```
+
+### Step 4: Run Tests
+
+```bash
+# Run tests
+cd build && ctest --output-on-failure
+```
+
+## Troubleshooting
+
+### C++23 Compiler Issues
+
+If you encounter errors related to missing C++23 features:
+
+1. **Verify compiler version:**
+   ```bash
+   clang++ --version  # Should be 18+ 
+   g++ --version      # Should be 14+
+   ```
+
+2. **Check C++23 standard library support:**
+   ```bash
+   echo '#include <print>' | clang++ -std=c++23 -E -
+   ```
+
+3. **Consider using Nix:** For the most reliable build experience, especially for development, consider using the Nix environment:
+   ```bash
+   # If you have Nix installed
+   nix develop
+   make setup build test
+   ```
+
+### vcpkg Issues
+
+1. **Clean vcpkg cache:**
+   ```bash
+   rm -rf vcpkg_installed/ build/
+   ./setup-vcpkg.sh
+   ```
+
+2. **Update vcpkg:**
+   ```bash
+   cd vcpkg
+   git pull
+   cd ..
+   ```
+
+3. **Apple Silicon (M1/M2) specific issues:**
+   ```bash
+   # Verify you're on Apple Silicon
+   uname -m  # Should show 'arm64'
+   
+   # If vcpkg fails with architecture-related errors, try:
+   export VCPKG_FORCE_SYSTEM_BINARIES=1
+   ./setup-vcpkg.sh
+   
+   # Or clean and retry:
+   rm -rf vcpkg/buildtrees vcpkg/packages vcpkg_installed
+   ./setup-vcpkg.sh
+   ```
+
+## Integration with Game Projects
+
+If you're using Atlas in your game project, add it as a submodule and include it in your CMakeLists.txt:
+
+```cmake
+# In your game's CMakeLists.txt
+add_subdirectory(atlas)
+target_link_libraries(your_game PRIVATE atlas::atlas)
+```
+
+Atlas automatically handles vcpkg integration when included as a subdirectory.
+
+---
+
+**Note:** These instructions are maintained as a secondary build path. For the best development experience and guaranteed compatibility, we recommend using the Nix environment as described in the main README.md.

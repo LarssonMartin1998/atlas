@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.30)
 
+# Setup non-Nix dependency management (vcpkg integration)
+include(${CMAKE_CURRENT_SOURCE_DIR}/VcpkgSetup.cmake)
+
 # Only define the project if not included as a subdirectory, this is important
 # because it won't work if included as a subdirectory from a game project
 # otherwise.
@@ -24,7 +27,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
 include(SetupModules.cmake)
-include(SetupExternalLibraries.cmake)
+
+
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)

@@ -58,4 +58,6 @@ clean:
 	@echo "Cleaning up..."
 	@rm -rf $(BUILD_DIR) CMakeUserPresets.json .cache compile_commands.json result
 	@cd generated && fd --max-depth 1 --exclude 'CMakeLists.txt' --exclude 'template' . -X rm -rf --
+	@# Clean up vcpkg temporary files
+	@rm -rf vcpkg/buildtrees vcpkg/downloads vcpkg/packages vcpkg/installed
 	@echo "Cleanup complete."

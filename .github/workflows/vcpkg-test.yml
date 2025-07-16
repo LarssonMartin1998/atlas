@@ -1,0 +1,73 @@
+name: vcpkg Dependency Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-vcpkg-setup:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+        include:
+          - os: ubuntu-24.04
+            script: ./setup-vcpkg.sh
+          - os: macos-14
+            script: ./setup-vcpkg.sh
+          - os: windows-2022
+            script: .\setup-vcpkg.bat
+            
+    runs-on: ${{ matrix.os }}
+    name: Test vcpkg setup on ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install basic dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-24.04'
+      run: |
+        sudo apt update
+        sudo apt install -y cmake ninja-build
+        
+    - name: Install basic dependencies (macOS)
+      if: matrix.os == 'macos-14'
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)" 
+        sysctl -n machdep.cpu.brand_string
+        if [ "$(uname -m)" != "arm64" ]; then
+          echo "❌ Expected Apple Silicon (arm64) but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on Apple Silicon (arm64)"
+        brew install cmake ninja
+        
+    - name: Bootstrap vcpkg
+      run: ${{ matrix.script }}
+      shell: ${{ matrix.os == 'windows-2022' && 'cmd' || 'bash' }}
+      
+    - name: Verify vcpkg installation
+      run: |
+        ls -la vcpkg/
+        # Check if vcpkg executable exists
+        if [ -f "vcpkg/vcpkg" ] || [ -f "vcpkg/vcpkg.exe" ]; then
+          echo "✅ vcpkg bootstrap successful"
+        else
+          echo "❌ vcpkg bootstrap failed"
+          exit 1
+        fi
+      shell: bash
+      
+    - name: Test dependency installation
+      run: |
+        if [ -f "vcpkg/vcpkg" ]; then
+          ./vcpkg/vcpkg list
+        elif [ -f "vcpkg/vcpkg.exe" ]; then
+          ./vcpkg/vcpkg.exe list
+        fi
+      shell: bash
