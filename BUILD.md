@@ -54,10 +54,7 @@ This will:
 **Using CMake directly:**
 ```bash
 # Configure
-cmake -B build -S . \
-  -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-  -DCMAKE_BUILD_TYPE=Release \
-  -G Ninja
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg
 
 # Build
 cmake --build build --parallel
