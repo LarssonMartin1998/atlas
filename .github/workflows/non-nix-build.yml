@@ -62,11 +62,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        brew install llvm cmake ninja
-        
-    - name: Set up LLVM
-      run: |
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+        brew install cmake ninja
         
     - name: Verify compiler
       run: |
@@ -77,9 +73,6 @@ jobs:
       run: ./setup-vcpkg.sh
       
     - name: Configure CMake
-      env:
-        CC: /opt/homebrew/opt/llvm/bin/clang
-        CXX: /opt/homebrew/opt/llvm/bin/clang++
       run: |
         cmake -B build -S . \
           -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
