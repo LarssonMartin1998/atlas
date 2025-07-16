@@ -10,7 +10,6 @@ endif()
 
 # External library dependencies
 function(setup_non_nix_dependencies)
-    # Taskflow is required for Atlas core functionality
-    find_package(Taskflow 3.10.0 REQUIRED)
-    target_link_libraries(atlas PRIVATE Taskflow::Taskflow)
+    # No non-Nix specific dependencies currently
+    # Core dependencies like Taskflow are handled by individual modules
 endfunction()

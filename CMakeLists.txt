@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
 # Setup non-Nix dependency management (vcpkg integration)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcpkgSetup.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/VcpkgSetup.cmake)
 
 # Only define the project if not included as a subdirectory, this is important
 # because it won't work if included as a subdirectory from a game project
