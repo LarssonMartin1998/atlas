@@ -1,15 +1,13 @@
 name: Non-Nix Build Test
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master ]
 
 jobs:
   test-ubuntu:
     runs-on: ubuntu-24.04
-    name: Ubuntu 24.04 - Clang 18
+    name: Ubuntu 24.04 - Clang
     
     steps:
     - name: Checkout code
@@ -20,30 +18,18 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y clang-18 clang++-18 cmake ninja-build
-        
-    - name: Set up Clang 18
-      run: |
-        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
-        
-    - name: Verify compiler
-      run: |
-        clang++ --version
-        echo '#include <print>' | clang++ -std=c++23 -E - || echo "C++23 print not available"
+        sudo apt install -y clang libc++-dev libc++abi-dev cmake ninja-build
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
-      
+        
     - name: Configure CMake
       env:
-        CC: clang-18
-        CXX: clang++-18
-      run: |
-        cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
+        CC: clang
+        CXX: clang++
+        CXXFLAGS: "-stdlib=libc++"
+        LDFLAGS: "-stdlib=libc++"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
           
     - name: Build
       run: cmake --build build --parallel
@@ -126,54 +112,12 @@ jobs:
       shell: cmd
       
     - name: Configure CMake
-      run: |
-        cmake -B build -S . `
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake `
-          -DCMAKE_BUILD_TYPE=Release `
-          -G "Visual Studio 17 2022"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release 
           
     - name: Build
-      run: cmake --build build --config Release --parallel
+      run: cmake --build build --parallel
       
     - name: Run tests
       run: |
         cd build
         ctest --output-on-failure -C Release
-
-  test-compatibility:
-    runs-on: ubuntu-22.04
-    name: Compatibility Test - Ubuntu 22.04
-    continue-on-error: true
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        
-    - name: Install available compiler
-      run: |
-        sudo apt update
-        sudo apt install -y clang cmake ninja-build
-        
-    - name: Check compiler capabilities
-      run: |
-        clang++ --version
-        echo "Testing C++23 support..."
-        echo '#include <print>' | clang++ -std=c++23 -E - 2>&1 || echo "C++23 print not available"
-        echo "This test demonstrates the need for modern compilers"
-        
-    - name: Bootstrap vcpkg
-      run: ./setup-vcpkg.sh
-      
-    - name: Configure CMake (expected to fail on older compilers)
-      continue-on-error: true
-      run: |
-        cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
-          
-    - name: Build (if configure succeeded)
-      continue-on-error: true
-      run: cmake --build build --parallel

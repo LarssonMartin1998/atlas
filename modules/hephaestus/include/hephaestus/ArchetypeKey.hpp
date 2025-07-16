@@ -98,13 +98,13 @@ class ArchetypeKey {
     StorageType storage{};
 };
 
-constexpr auto next_id() -> std::size_t {
+inline auto next_id() -> std::size_t {
     static std::size_t id = 0;
     return id++;
 }
 
 template <typename T>
-constexpr auto counter() -> std::size_t {
+inline auto counter() -> std::size_t {
     static std::size_t value = next_id();
     return value;
 }
@@ -120,16 +120,14 @@ constexpr auto hash_string(std::string_view str) -> std::uint64_t {
 }
 
 template <typename T>
-constexpr auto get_component_type_id() -> std::size_t {
-    // Normalize the type to remove cv-qualifiers and references
+auto get_component_type_id() -> std::size_t {
     using NormalizedType = std::remove_cvref_t<T>;
 
-    // Use a type-specific approach that works with normalized types
-    // This ensures const Position and Position get the same ID
-    const auto hash = counter<NormalizedType>();
+    // Static variable caches the computed result per type
+    static const std::size_t cached_id = counter<NormalizedType>()
+                                         % (ArchetypeKey::STORAGE_SIZE * 64);
 
-    // Ensure we stay within our storage capacity
-    return hash % (ArchetypeKey::STORAGE_SIZE * 64);
+    return cached_id;
 }
 
 // Hash functor for ArchetypeKey

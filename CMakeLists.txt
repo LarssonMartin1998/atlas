@@ -28,8 +28,6 @@ add_library(atlas STATIC)
 add_library(atlas::atlas ALIAS atlas)
 include(SetupModules.cmake)
 
-
-
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 add_subdirectory(include)
 add_subdirectory(src)
