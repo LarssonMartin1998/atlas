@@ -1,5 +1,0 @@
-if(EXISTS "/home/runner/work/atlas/atlas/build-clang/tests/atlas_core[1]_tests.cmake")
-  include("/home/runner/work/atlas/atlas/build-clang/tests/atlas_core[1]_tests.cmake")
-else()
-  add_test(atlas_core_NOT_BUILT atlas_core_NOT_BUILT)
-endif()

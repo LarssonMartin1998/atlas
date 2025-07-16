@@ -1,2 +1,0 @@
-/usr/bin/ar qc libatlas.a CMakeFiles/atlas.dir/modules/hephaestus/src/hephaestus/Hephaestus.cpp.o CMakeFiles/atlas.dir/modules/hephaestus/src/hephaestus/Archetype.cpp.o CMakeFiles/atlas.dir/modules/hephaestus/src/hephaestus/Utils.cpp.o CMakeFiles/atlas.dir/src/atlas/core/Game.cpp.o CMakeFiles/atlas.dir/src/atlas/core/Module.cpp.o CMakeFiles/atlas.dir/src/atlas/core/time/EngineClock.cpp.o CMakeFiles/atlas.dir/src/atlas/core/time/Timer.cpp.o
-/usr/bin/ranlib libatlas.a
