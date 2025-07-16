@@ -1,0 +1,137 @@
+name: Nix Build Verification
+
+# This workflow verifies that 'nix build .' successfully builds the Atlas engine
+# on all supported platforms: darwin aarch64, linux x86_64, and linux aarch64.
+# The flake.nix is configured with doCheck=true, so builds include running tests
+# and will fail if either build or tests fail.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  nix-build-macos-aarch64:
+    runs-on: macos-14
+    name: Nix Build - macOS aarch64 (Apple Silicon)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Verify Apple Silicon architecture
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)"
+        sysctl -n machdep.cpu.brand_string
+        if [ "$(uname -m)" != "arm64" ]; then
+          echo "❌ Expected Apple Silicon (arm64) but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on Apple Silicon (arm64)"
+        
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      
+    - name: Setup Nix Magic Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+      
+    - name: Verify Nix installation
+      run: |
+        nix --version
+        nix flake show --system aarch64-darwin
+        
+    - name: Build Atlas with Nix
+      run: |
+        echo "Building Atlas for aarch64-darwin..."
+        nix build . --system aarch64-darwin
+        
+    - name: Verify build output
+      run: |
+        ls -la result/
+        file result/bin/* || echo "No binaries found in result/bin/"
+        echo "✅ Nix build successful for macOS aarch64"
+
+  nix-build-linux-x86_64:
+    runs-on: ubuntu-latest
+    name: Nix Build - Linux x86_64
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Verify x86_64 architecture
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)"
+        if [ "$(uname -m)" != "x86_64" ]; then
+          echo "❌ Expected x86_64 but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on x86_64"
+        
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      
+    - name: Setup Nix Magic Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+      
+    - name: Verify Nix installation
+      run: |
+        nix --version
+        nix flake show --system x86_64-linux
+        
+    - name: Build Atlas with Nix
+      run: |
+        echo "Building Atlas for x86_64-linux..."
+        nix build . --system x86_64-linux
+        
+    - name: Verify build output
+      run: |
+        ls -la result/
+        file result/bin/* || echo "No binaries found in result/bin/"
+        echo "✅ Nix build successful for Linux x86_64"
+
+  nix-build-linux-aarch64:
+    # Note: GitHub Actions doesn't provide free aarch64 Linux runners
+    # This job uses cross-compilation with Nix to build for aarch64-linux
+    runs-on: ubuntu-latest
+    name: Nix Build - Linux aarch64 (cross-compiled)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      
+    - name: Setup Nix Magic Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+      
+    - name: Enable aarch64-linux builds
+      run: |
+        echo "extra-platforms = aarch64-linux" | sudo tee -a /etc/nix/nix.conf
+        sudo systemctl restart nix-daemon || true
+        
+    - name: Verify Nix installation and platform support
+      run: |
+        nix --version
+        nix flake show --system aarch64-linux
+        
+    - name: Build Atlas with Nix for aarch64-linux
+      run: |
+        echo "Building Atlas for aarch64-linux (cross-compiled)..."
+        nix build . --system aarch64-linux
+        
+    - name: Verify build output
+      run: |
+        ls -la result/
+        file result/bin/* || echo "No binaries found in result/bin/"
+        echo "✅ Nix build successful for Linux aarch64"
