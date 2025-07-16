@@ -4,6 +4,19 @@ set -e
 
 echo "Setting up vcpkg for Atlas..."
 
+# Detect architecture and provide helpful information
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    ARCH=$(uname -m)
+    echo "Detected macOS on $ARCH architecture"
+    
+    if [ "$ARCH" = "arm64" ]; then
+        echo "✅ Apple Silicon (M1/M2) detected"
+        echo "ℹ️  If you encounter vcpkg build issues, see BUILD.md troubleshooting section"
+    else
+        echo "ℹ️  Intel Mac detected"
+    fi
+fi
+
 # Initialize vcpkg submodule if not already done
 if [ ! -f "vcpkg/.vcpkg-root" ]; then
     echo "Initializing vcpkg submodule..."

@@ -113,6 +113,20 @@ If you encounter errors related to missing C++23 features:
    cd ..
    ```
 
+3. **Apple Silicon (M1/M2) specific issues:**
+   ```bash
+   # Verify you're on Apple Silicon
+   uname -m  # Should show 'arm64'
+   
+   # If vcpkg fails with architecture-related errors, try:
+   export VCPKG_FORCE_SYSTEM_BINARIES=1
+   ./setup-vcpkg.sh
+   
+   # Or clean and retry:
+   rm -rf vcpkg/buildtrees vcpkg/packages vcpkg_installed
+   ./setup-vcpkg.sh
+   ```
+
 ## Integration with Game Projects
 
 If you're using Atlas in your game project, add it as a submodule and include it in your CMakeLists.txt:

@@ -55,13 +55,24 @@ jobs:
 
   test-macos:
     runs-on: macos-14
-    name: macOS 14 - Apple Clang
+    name: macOS 14 - Apple Silicon
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
+        
+    - name: Verify Apple Silicon architecture
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)"
+        sysctl -n machdep.cpu.brand_string
+        if [ "$(uname -m)" != "arm64" ]; then
+          echo "❌ Expected Apple Silicon (arm64) but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on Apple Silicon (arm64)"
         
     - name: Install dependencies
       run: |
