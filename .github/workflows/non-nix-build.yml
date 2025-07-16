@@ -19,30 +19,16 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y clang-18 clang++-18 cmake ninja-build
-        
-    - name: Set up Clang 18
-      run: |
-        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100
-        
-    - name: Verify compiler
-      run: |
-        clang++ --version
-        echo '#include <print>' | clang++ -std=c++23 -E - || echo "C++23 print not available"
+        sudo apt install -y clang cmake ninja-build
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
       
     - name: Configure CMake
       env:
-        CC: clang-18
-        CXX: clang++-18
-      run: |
-        cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
+        CC: clang
+        CXX: clang++
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja
           
     - name: Build
       run: cmake --build build --parallel
@@ -125,14 +111,10 @@ jobs:
       shell: cmd
       
     - name: Configure CMake
-      run: |
-        cmake -B build -S . `
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake `
-          -DCMAKE_BUILD_TYPE=Release `
-          -G "Visual Studio 17 2022"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release 
           
     - name: Build
-      run: cmake --build build --config Release --parallel
+      run: cmake --build build --parallel
       
     - name: Run tests
       run: |
