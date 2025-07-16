@@ -6,10 +6,8 @@ name: Nix Build Verification
 # and will fail if either build or tests fail.
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master ]
 
 jobs:
   nix-build-macos-aarch64:
