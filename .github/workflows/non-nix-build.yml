@@ -18,14 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        # Add LLVM repository for newer versions
-        # wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        # sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main"
-        # sudo apt update
-        # sudo apt install -y clang-20 libc++-20-dev libc++abi-20-dev cmake ninja-build
         sudo apt install -y clang libc++-dev libc++abi-dev cmake ninja-build
-        # sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-20 100
-        # sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-20 100
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
