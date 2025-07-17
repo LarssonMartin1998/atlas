@@ -100,7 +100,7 @@ jobs:
         submodules: recursive
         
     - name: Setup MSVC
-      uses: microsoft/msbuild@v1.3.1
+      uses: microsoft/setup-msbuild@v2
       
     - name: Bootstrap vcpkg
       run: .\setup-vcpkg.bat
