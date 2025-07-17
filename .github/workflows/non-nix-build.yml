@@ -1,4 +1,6 @@
 name: Non-Nix Build Test
+permissions:
+  contents: read
 
 on:
   pull_request:
@@ -8,7 +10,12 @@ jobs:
   test-ubuntu:
     runs-on: ubuntu-24.04
     name: Ubuntu 24.04 - Clang
-    
+    env:
+      CC: clang
+      CXX: clang++
+      CXXFLAGS: "-stdlib=libc++"
+      LDFLAGS: "-stdlib=libc++"
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -19,17 +26,12 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y clang libc++-dev libc++abi-dev cmake ninja-build
-        
+
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
         
     - name: Configure CMake
-      env:
-        CC: clang
-        CXX: clang++
-        CXXFLAGS: "-stdlib=libc++"
-        LDFLAGS: "-stdlib=libc++"
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja
           
     - name: Build
       run: cmake --build build --parallel
@@ -42,7 +44,7 @@ jobs:
   test-macos:
     runs-on: macos-14
     name: macOS 14 - Apple Silicon
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -62,102 +64,22 @@ jobs:
         
     - name: Install dependencies
       run: |
-        brew install cmake ninja
-        
-    - name: Verify compiler
+        brew install cmake ninja llvm lld
+
+    - name: Setup LLVM environment
       run: |
-        echo "=== System Clang Information ==="
-        clang++ --version
-        which clang++
-        echo "=== C++23 Feature Tests ==="
-        echo '#include <print>' | clang++ -std=c++23 -E - > /dev/null 2>&1 && echo "✅ C++23 print available" || echo "❌ C++23 print not available"
-        
-        # Test for std::ranges::views::join specifically
-        cat > /tmp/ranges_test.cpp << 'EOF'
-        #include <ranges>
-        #include <vector>
-        int main() {
-            std::vector<std::vector<int>> v{{1,2}, {3,4}};
-            auto joined = v | std::ranges::views::join;
-            return 0;
-        }
-        EOF
-        if clang++ -std=c++23 /tmp/ranges_test.cpp -o /tmp/ranges_test > /dev/null 2>&1; then
-          echo "✅ C++23 ranges::views::join available"
-          echo "RANGES_SUPPORT=true" >> $GITHUB_ENV
-        else
-          echo "❌ C++23 ranges::views::join not available"
-          echo "RANGES_SUPPORT=false" >> $GITHUB_ENV
-        fi
-        
-        echo "=== SDK Information ==="
-        xcrun --show-sdk-path
-        echo "=== Testing basic C++23 compilation ==="
-        echo 'int main() { return 0; }' | clang++ -std=c++23 -x c++ - -o /tmp/test && echo "✅ C++23 compilation works" || echo "❌ C++23 compilation failed"
+        LLVM_PREFIX=$(brew --prefix llvm)
+        echo "LLVM_PREFIX=$LLVM_PREFIX" >> $GITHUB_ENV
+        echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
+        echo "CXXFLAGS=-isystem $LLVM_PREFIX/include/c++/v1" >> $GITHUB_ENV
+        echo "LDFLAGS=-L$LLVM_PREFIX/lib -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
       
     - name: Configure CMake
-      run: |
-        # Check if system clang has sufficient C++23 support
-        if [ "$RANGES_SUPPORT" = "true" ]; then
-          echo "=== Attempting configuration with system clang (full C++23 support detected) ==="
-          if cmake -B build -S . \
-            -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DCMAKE_BUILD_TYPE=Release \
-            -G Ninja 2>&1; then
-            echo "✅ Configuration successful with system clang"
-          else
-            echo "❌ Configuration failed with system clang despite ranges support"
-            exit 1
-          fi
-        else
-          echo "❌ System clang lacks required C++23 ranges support, using Homebrew LLVM..."
-          echo "=== Installing Homebrew LLVM for full C++23 support ==="
-          brew install llvm
-          
-          # Set up environment for Homebrew LLVM
-          export CC=/opt/homebrew/opt/llvm/bin/clang
-          export CXX=/opt/homebrew/opt/llvm/bin/clang++
-          export SDKROOT=$(xcrun --show-sdk-path)
-          
-          echo "=== Verifying Homebrew LLVM has ranges support ==="
-          cat > /tmp/ranges_test.cpp << 'EOF'
-          #include <ranges>
-          #include <vector>
-          int main() {
-              std::vector<std::vector<int>> v{{1,2}, {3,4}};
-              auto joined = v | std::ranges::views::join;
-              return 0;
-          }
-          EOF
-          if /opt/homebrew/opt/llvm/bin/clang++ -std=c++23 /tmp/ranges_test.cpp -o /tmp/ranges_test_llvm > /dev/null 2>&1; then
-            echo "✅ Homebrew LLVM has ranges support"
-          else
-            echo "❌ Even Homebrew LLVM lacks ranges support"
-            /opt/homebrew/opt/llvm/bin/clang++ --version
-            exit 1
-          fi
-          
-          echo "=== Configuring with Homebrew LLVM and system headers ==="
-          cmake -B build -S . \
-            -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DCMAKE_BUILD_TYPE=Release \
-            -G Ninja \
-            -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm/bin/clang \
-            -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm/bin/clang++ \
-            -DCMAKE_CXX_FLAGS="-isysroot $(xcrun --show-sdk-path)" \
-            -DCMAKE_C_FLAGS="-isysroot $(xcrun --show-sdk-path)" || {
-              echo "❌ Configuration failed with Homebrew LLVM"
-              echo "=== Debug Information ==="
-              echo "SDK Root: $(xcrun --show-sdk-path)"
-              echo "LLVM Clang version:"
-              /opt/homebrew/opt/llvm/bin/clang++ --version
-              exit 1
-            }
-          echo "✅ Configuration successful with Homebrew LLVM"
-        fi
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja
           
     - name: Build
       run: cmake --build build --parallel
@@ -178,14 +100,14 @@ jobs:
         submodules: recursive
         
     - name: Setup MSVC
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/msbuild@v1.3.1
       
     - name: Bootstrap vcpkg
       run: .\setup-vcpkg.bat
       shell: cmd
       
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release 
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
           
     - name: Build
       run: cmake --build build --parallel
@@ -193,4 +115,4 @@ jobs:
     - name: Run tests
       run: |
         cd build
-        ctest --output-on-failure -C Release
+        ctest --output-on-failure
