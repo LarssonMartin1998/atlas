@@ -68,8 +68,8 @@ jobs:
 
     - name: Setup LLVM environment
       run: |
-        # MACOS_SDK=$(xcrun --show-sdk-path)
-        # echo "SDKROOT=$MACOS_SDK" >> $GITHUB_ENV
+        MACOS_SDK=$(xcrun --show-sdk-path)
+        echo "SDKROOT=$MACOS_SDK" >> $GITHUB_ENV
         LLVM_PREFIX=$(brew --prefix llvm)
         echo "LLVM_PREFIX=$LLVM_PREFIX" >> $GITHUB_ENV
         echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
