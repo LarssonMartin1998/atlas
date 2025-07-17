@@ -74,8 +74,14 @@ jobs:
         echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
         echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
         echo "CXXFLAGS=-stdlib=libc++ -isystem $LLVM_PREFIX/include/c++/v1 -isysroot $MACOS_SDK" >> $GITHUB_ENV
-        echo "LDFLAGS=-stdlib=libc++ -L$LLVM_PREFIX/lib -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
+        echo "LDFLAGS=-stdlib=libc++ -L$LLVM_PREFIX/lib -L$LLVM_PREFIX/lib/c++ -Wl,-rpath,$LLVM_PREFIX/lib -lc++abi -lc++" >> $GITHUB_ENV
         echo "SDKROOT=$MACOS_SDK" >> $GITHUB_ENV
+        
+        # Debug: Check what libc++ libraries are available
+        echo "Available libc++ libraries:"
+        ls -la $LLVM_PREFIX/lib/libc++*
+        echo "LLVM version:"
+        $LLVM_PREFIX/bin/clang++ --version
 
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
