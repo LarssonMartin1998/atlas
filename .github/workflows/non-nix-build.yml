@@ -76,11 +76,6 @@ jobs:
         echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
         echo "CPPFLAGS=-I$LLVM_PREFIX/include" >> $GITHUB_ENV
         echo "LDFLAGS=-L$LLVM_PREFIX/lib -L$LLVM_PREFIX/lib/c++ -L$LLVM_PREFIX/lib/unwind -lunwind" >> $GITHUB_ENV
-        # echo "CXXFLAGS=-stdlib=libc++ -isystem $LLVM_PREFIX/include/c++/v1 -isysroot $MACOS_SDK" >> $GITHUB_ENV
-        # echo "CXXFLAGS=-isystem $LLVM_PREFIX/include/c++/v1" >> $GITHUB_ENV
-        # echo "LDFLAGS=-stdlib=libc++ -L$LLVM_PREFIX/lib/c++ -L$LLVM_PREFIX/lib/unwind -lunwind -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
-        # echo "LDFLAGS=-L$LLVM_PREFIX/lib/c++ -L$LLVM_PREFIX/lib/unwind -lunwind -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
-
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
