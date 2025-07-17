@@ -1,4 +1,6 @@
 name: Non-Nix Build Test
+permissions:
+  contents: read
 
 on:
   pull_request:
@@ -8,7 +10,12 @@ jobs:
   test-ubuntu:
     runs-on: ubuntu-24.04
     name: Ubuntu 24.04 - Clang
-    
+    env:
+      CC: clang
+      CXX: clang++
+      CXXFLAGS: "-stdlib=libc++"
+      LDFLAGS: "-stdlib=libc++"
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -19,17 +26,12 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y clang libc++-dev libc++abi-dev cmake ninja-build
-        
+
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
         
     - name: Configure CMake
-      env:
-        CC: clang
-        CXX: clang++
-        CXXFLAGS: "-stdlib=libc++"
-        LDFLAGS: "-stdlib=libc++"
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja
           
     - name: Build
       run: cmake --build build --parallel
@@ -42,7 +44,7 @@ jobs:
   test-macos:
     runs-on: macos-14
     name: macOS 14 - Apple Silicon
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -62,29 +64,24 @@ jobs:
         
     - name: Install dependencies
       run: |
-        brew install llvm cmake ninja
-        
-    - name: Set up LLVM
+        brew install cmake ninja llvm lld
+
+    - name: Setup LLVM environment
       run: |
-        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
-        
-    - name: Verify compiler
-      run: |
-        clang++ --version
-        echo '#include <print>' | clang++ -std=c++23 -E - || echo "C++23 print not available"
+        MACOS_SDK=$(xcrun --show-sdk-path)
+        echo "SDKROOT=$MACOS_SDK" >> $GITHUB_ENV
+        LLVM_PREFIX=$(brew --prefix llvm)
+        echo "LLVM_PREFIX=$LLVM_PREFIX" >> $GITHUB_ENV
+        echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
+        echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
+        echo "CPPFLAGS=-I$LLVM_PREFIX/include" >> $GITHUB_ENV
+        echo "LDFLAGS=-L$LLVM_PREFIX/lib -L$LLVM_PREFIX/lib/c++ -L$LLVM_PREFIX/lib/unwind -lunwind" >> $GITHUB_ENV
         
     - name: Bootstrap vcpkg
       run: ./setup-vcpkg.sh
       
     - name: Configure CMake
-      env:
-        CC: /opt/homebrew/opt/llvm/bin/clang
-        CXX: /opt/homebrew/opt/llvm/bin/clang++
-      run: |
-        cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake -G Ninja
           
     - name: Build
       run: cmake --build build --parallel
@@ -112,7 +109,7 @@ jobs:
       shell: cmd
       
     - name: Configure CMake
-      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake" -DCMAKE_BUILD_TYPE=Release 
+      run: cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
           
     - name: Build
       run: cmake --build build --parallel
@@ -120,4 +117,4 @@ jobs:
     - name: Run tests
       run: |
         cd build
-        ctest --output-on-failure -C Release
+        ctest --output-on-failure
