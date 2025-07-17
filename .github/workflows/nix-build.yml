@@ -49,19 +49,17 @@ jobs:
         
     - name: Verify build output
       run: |
+        echo "Checking build output structure..."
         ls -la result/
-        if [ -d "result/bin" ]; then
-          echo "✅ Build output directory created"
-          ls -la result/bin/
-          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
-            echo "✅ Atlas binary found"
-          else
-            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
-          fi
+        if [ -f "result/lib/libatlas.a" ]; then
+          echo "✅ Atlas static library found at result/lib/libatlas.a"
+          ls -la result/lib/libatlas.a
         else
-          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
+          echo "❌ Required Atlas static library not found at result/lib/libatlas.a"
+          echo "Build output contents:"
+          find result/ -type f 2>/dev/null || echo "No files found in result/"
+          exit 1
         fi
-        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for macOS aarch64"
 
   nix-build-linux-x86_64:
@@ -102,17 +100,15 @@ jobs:
         
     - name: Verify build output
       run: |
+        echo "Checking build output structure..."
         ls -la result/
-        if [ -d "result/bin" ]; then
-          echo "✅ Build output directory created"
-          ls -la result/bin/
-          if [ -f "result/bin/atlas" ] || [ -f "result/bin/atlas.exe" ]; then
-            echo "✅ Atlas binary found"
-          else
-            echo "ℹ️  Atlas binary not found in expected location (this may be normal depending on build configuration)"
-          fi
+        if [ -f "result/lib/libatlas.a" ]; then
+          echo "✅ Atlas static library found at result/lib/libatlas.a"
+          ls -la result/lib/libatlas.a
         else
-          echo "ℹ️  No bin directory found (this may be normal for library-only builds)"
+          echo "❌ Required Atlas static library not found at result/lib/libatlas.a"
+          echo "Build output contents:"
+          find result/ -type f 2>/dev/null || echo "No files found in result/"
+          exit 1
         fi
-        file result/bin/* 2>/dev/null || echo "ℹ️  No binaries to inspect"
         echo "✅ Nix build successful for Linux x86_64"
