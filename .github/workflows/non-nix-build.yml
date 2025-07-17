@@ -73,8 +73,8 @@ jobs:
         echo "LLVM_PREFIX=$LLVM_PREFIX" >> $GITHUB_ENV
         echo "CC=$LLVM_PREFIX/bin/clang" >> $GITHUB_ENV
         echo "CXX=$LLVM_PREFIX/bin/clang++" >> $GITHUB_ENV
-        echo "CXXFLAGS=-isystem $LLVM_PREFIX/include/c++/v1 -isysroot $MACOS_SDK" >> $GITHUB_ENV
-        echo "LDFLAGS=-L$LLVM_PREFIX/lib -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
+        echo "CXXFLAGS=-stdlib=libc++ -isystem $LLVM_PREFIX/include/c++/v1 -isysroot $MACOS_SDK" >> $GITHUB_ENV
+        echo "LDFLAGS=-stdlib=libc++ -L$LLVM_PREFIX/lib -Wl,-rpath,$LLVM_PREFIX/lib" >> $GITHUB_ENV
         echo "SDKROOT=$MACOS_SDK" >> $GITHUB_ENV
 
     - name: Bootstrap vcpkg
