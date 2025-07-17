@@ -1,0 +1,166 @@
+name: Nix Build Verification
+permissions:
+  contents: read
+
+# This workflow verifies that 'nix build .' successfully builds the Atlas engine
+# on supported platforms: darwin aarch64 and linux x86_64.
+# The flake.nix is configured with doCheck=true, so builds include running tests
+# and will fail if either build or tests fail.
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  nix-build-macos-aarch64:
+    runs-on: macos-14
+    name: Nix Build - macOS aarch64 (Apple Silicon)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Verify Apple Silicon architecture
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)"
+        sysctl -n machdep.cpu.brand_string
+        if [ "$(uname -m)" != "arm64" ]; then
+          echo "❌ Expected Apple Silicon (arm64) but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on Apple Silicon (arm64)"
+        
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      
+    - name: Setup Nix Magic Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+      
+    - name: Verify Nix installation
+      run: |
+        nix --version
+        nix flake show --system aarch64-darwin
+        
+    - name: Build Atlas with Nix
+      run: |
+        echo "Building Atlas for aarch64-darwin..."
+        set +e  # Don't exit immediately on failure
+        output=$(nix build . --system aarch64-darwin 2>&1)
+        exit_code=$?
+        
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ Nix build failed with exit code $exit_code"
+          echo "Build output:"
+          echo "$output"
+          
+          # Extract derivation paths and show full logs
+          drv_paths=$(echo "$output" | grep -o "/nix/store/[^']*\.drv" || true)
+          if [ -n "$drv_paths" ]; then
+            echo ""
+            echo "📋 Full build logs:"
+            for drv in $drv_paths; do
+              echo "----------------------------------------"
+              echo "Logs for: $drv"
+              echo "----------------------------------------"
+              nix log "$drv" 2>/dev/null || echo "Could not retrieve logs for $drv"
+            done
+          fi
+          exit $exit_code
+        else
+          echo "✅ Nix build completed successfully"
+          echo "$output"
+        fi
+        
+    - name: Verify build output
+      run: |
+        echo "Checking build output structure..."
+        ls -la result/
+        if [ -f "result/lib/libatlas.a" ]; then
+          echo "✅ Atlas static library found at result/lib/libatlas.a"
+          ls -la result/lib/libatlas.a
+        else
+          echo "❌ Required Atlas static library not found at result/lib/libatlas.a"
+          echo "Build output contents:"
+          find result/ -type f 2>/dev/null || echo "No files found in result/"
+          exit 1
+        fi
+        echo "✅ Nix build successful for macOS aarch64"
+
+  nix-build-linux-x86_64:
+    runs-on: ubuntu-latest
+    name: Nix Build - Linux x86_64
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Verify x86_64 architecture
+      run: |
+        echo "System architecture: $(uname -m)"
+        echo "Hardware platform: $(uname -p)"
+        if [ "$(uname -m)" != "x86_64" ]; then
+          echo "❌ Expected x86_64 but got $(uname -m)"
+          exit 1
+        fi
+        echo "✅ Running on x86_64"
+        
+    - name: Install Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      
+    - name: Setup Nix Magic Cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+      
+    - name: Verify Nix installation
+      run: |
+        nix --version
+        nix flake show --system x86_64-linux
+        
+    - name: Build Atlas with Nix
+      run: |
+        echo "Building Atlas for x86_64-linux..."
+        set +e  # Don't exit immediately on failure
+        output=$(nix build . --system x86_64-linux 2>&1)
+        exit_code=$?
+        
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ Nix build failed with exit code $exit_code"
+          echo "Build output:"
+          echo "$output"
+          
+          # Extract derivation paths and show full logs
+          drv_paths=$(echo "$output" | grep -o "/nix/store/[^']*\.drv" || true)
+          if [ -n "$drv_paths" ]; then
+            echo ""
+            echo "📋 Full build logs:"
+            for drv in $drv_paths; do
+              echo "----------------------------------------"
+              echo "Logs for: $drv"
+              echo "----------------------------------------"
+              nix log "$drv" 2>/dev/null || echo "Could not retrieve logs for $drv"
+            done
+          fi
+          exit $exit_code
+        else
+          echo "✅ Nix build completed successfully"
+          echo "$output"
+        fi
+        
+    - name: Verify build output
+      run: |
+        echo "Checking build output structure..."
+        ls -la result/
+        if [ -f "result/lib/libatlas.a" ]; then
+          echo "✅ Atlas static library found at result/lib/libatlas.a"
+          ls -la result/lib/libatlas.a
+        else
+          echo "❌ Required Atlas static library not found at result/lib/libatlas.a"
+          echo "Build output contents:"
+          find result/ -type f 2>/dev/null || echo "No files found in result/"
+          exit 1
+        fi
+        echo "✅ Nix build successful for Linux x86_64"
