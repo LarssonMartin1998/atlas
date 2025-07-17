@@ -47,7 +47,32 @@ jobs:
     - name: Build Atlas with Nix
       run: |
         echo "Building Atlas for aarch64-darwin..."
-        nix build . --system aarch64-darwin
+        set +e  # Don't exit immediately on failure
+        output=$(nix build . --system aarch64-darwin 2>&1)
+        exit_code=$?
+        
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ Nix build failed with exit code $exit_code"
+          echo "Build output:"
+          echo "$output"
+          
+          # Extract derivation paths and show full logs
+          drv_paths=$(echo "$output" | grep -o "/nix/store/[^']*\.drv" || true)
+          if [ -n "$drv_paths" ]; then
+            echo ""
+            echo "📋 Full build logs:"
+            for drv in $drv_paths; do
+              echo "----------------------------------------"
+              echo "Logs for: $drv"
+              echo "----------------------------------------"
+              nix log "$drv" 2>/dev/null || echo "Could not retrieve logs for $drv"
+            done
+          fi
+          exit $exit_code
+        else
+          echo "✅ Nix build completed successfully"
+          echo "$output"
+        fi
         
     - name: Verify build output
       run: |
@@ -98,7 +123,32 @@ jobs:
     - name: Build Atlas with Nix
       run: |
         echo "Building Atlas for x86_64-linux..."
-        nix build . --system x86_64-linux
+        set +e  # Don't exit immediately on failure
+        output=$(nix build . --system x86_64-linux 2>&1)
+        exit_code=$?
+        
+        if [ $exit_code -ne 0 ]; then
+          echo "❌ Nix build failed with exit code $exit_code"
+          echo "Build output:"
+          echo "$output"
+          
+          # Extract derivation paths and show full logs
+          drv_paths=$(echo "$output" | grep -o "/nix/store/[^']*\.drv" || true)
+          if [ -n "$drv_paths" ]; then
+            echo ""
+            echo "📋 Full build logs:"
+            for drv in $drv_paths; do
+              echo "----------------------------------------"
+              echo "Logs for: $drv"
+              echo "----------------------------------------"
+              nix log "$drv" 2>/dev/null || echo "Could not retrieve logs for $drv"
+            done
+          fi
+          exit $exit_code
+        else
+          echo "✅ Nix build completed successfully"
+          echo "$output"
+        fi
         
     - name: Verify build output
       run: |
