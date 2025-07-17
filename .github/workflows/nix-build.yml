@@ -1,4 +1,6 @@
 name: Nix Build Verification
+permissions:
+  contents: read
 
 # This workflow verifies that 'nix build .' successfully builds the Atlas engine
 # on supported platforms: darwin aarch64 and linux x86_64.
