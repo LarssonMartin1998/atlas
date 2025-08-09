@@ -43,7 +43,6 @@ struct ComponentStorage final : public IComponentStorage {
         }
 
         components.pop_back();
-        ComponentType::increment_version();
     }
 
     std::vector<ComponentType> components{};
@@ -122,7 +121,5 @@ auto Archetype::add_to_component_storage(ComponentType&& component) -> void {
 
     static_cast<ComponentStorage<ComponentType>&>(*component_storages[type_id].get())
         .components.emplace_back(std::forward<ComponentType>(component));
-
-    ComponentType::increment_version();
 }
 } // namespace atlas::hephaestus
