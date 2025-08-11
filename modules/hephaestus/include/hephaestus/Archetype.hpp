@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 #include <ranges>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -70,19 +71,23 @@ class Archetype final {
     auto destroy_entity(Entity entity) -> bool;
 
     template <AllTypeOfComponent... ComponentTypes>
-    auto get_entity_tuples() const -> decltype(auto);
+    auto get_entity_tuples() -> decltype(auto);
+
+    [[nodiscard]] auto get_version() const -> std::uint64_t;
 
   private:
     template <TypeOfComponent ComponentType>
-    [[nodiscard]] auto get_components() const -> std::vector<ComponentType>&;
+    [[nodiscard]] auto get_components() -> std::span<ComponentType>;
 
     template <TypeOfComponent ComponentType>
     auto add_to_component_storage(ComponentType&& component) -> void;
 
     using ComponentTypeId = std::size_t;
-    std::unordered_map<Entity, std::size_t> ent_to_component_index;
+    std::unordered_map<Entity, ComponentTypeId> ent_to_component_index;
     std::vector<Entity> component_index_to_ent;
     std::unordered_map<ComponentTypeId, std::unique_ptr<IComponentStorage>> component_storages;
+
+    std::uint64_t version = 0;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
@@ -93,10 +98,12 @@ auto Archetype::create_entity(Entity entity, ComponentTypes&&... components) -> 
     const auto& first_component_storage = *component_storages.begin()->second;
     ent_to_component_index.emplace(entity, first_component_storage.size() - 1);
     component_index_to_ent.emplace_back(entity);
+
+    version++;
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto Archetype::get_entity_tuples() const -> decltype(auto) {
+auto Archetype::get_entity_tuples() -> decltype(auto) {
     return std::views::iota(std::size_t{0}, ent_to_component_index.size())
            | std::views::transform([this](const auto& index) {
                  return std::tuple<ComponentTypes&...>{get_components<ComponentTypes>()[index]...};
@@ -104,7 +111,7 @@ auto Archetype::get_entity_tuples() const -> decltype(auto) {
 }
 
 template <TypeOfComponent ComponentType>
-[[nodiscard]] auto Archetype::get_components() const -> std::vector<ComponentType>& {
+[[nodiscard]] auto Archetype::get_components() -> std::span<ComponentType> {
     const auto type_id = get_component_type_id<ComponentType>();
     assert(component_storages.contains(type_id) && "Component type not found in archetype");
 

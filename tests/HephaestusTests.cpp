@@ -16,15 +16,15 @@ using namespace atlas;
 using namespace atlas::core;
 using namespace atlas::hephaestus;
 
-struct Position : public Component<Position> {
+struct Position : public Component {
     float x, y;
 };
 
-struct Velocity : public Component<Velocity> {
+struct Velocity : public Component {
     float dx, dy;
 };
 
-struct Health : public Component<Health> {
+struct Health : public Component {
     std::uint32_t value;
 };
 
@@ -434,11 +434,11 @@ TEST(HephaestusTest, DeletingEntities) {
 }
 
 TEST(HephaestusTest, PreCreateArchetypes) {
-    struct CreateEntityComponent : Component<CreateEntityComponent> {
+    struct CreateEntityComponent : Component {
         std::uint8_t max_creations = 5;
     };
 
-    struct UniqueComponent : Component<UniqueComponent> {};
+    struct UniqueComponent : Component {};
 
     class TestArchetypeGame : public MockGame {
       public:

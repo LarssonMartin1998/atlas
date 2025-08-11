@@ -1,5 +1,7 @@
 #include "hephaestus/Hephaestus.hpp"
 #include "core/IEngine.hpp"
+#include "hephaestus/Archetype.hpp"
+#include "hephaestus/Component.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -29,6 +31,8 @@ auto Hephaestus::start() -> void {}
 
 auto Hephaestus::post_start() -> void {
     build_systems_dependency_graph();
+
+    initialize_systems();
 }
 
 auto Hephaestus::shutdown() -> void {
@@ -43,9 +47,18 @@ auto Hephaestus::tick() -> void {
     tot_num_created_ents += creation_queue.size();
     creation_queue.clear();
 
+    // TODO: Separate system caching into it's own frame step HERE and run it before executing the
+    // systems. Additionally, create cache buckets for each archetype/version/tuple result instead
+    // of storing it as one final result. This allows us to ONLY invalidate EXACTLY what is changed
+    // in the cache, plus, with different buckets we can run the caching invalidation and rebuilding
+    // in parallel. This should be a MAJOR increase in performance and predictability.
+
     if (!systems_graph.empty()) {
         systems_executor.run(systems_graph).wait();
     }
+
+    // TODO: Handle and resolve all events here (non recursive, new events will be handled next
+    // frame).
 
     for (const auto entity : destroy_queue) {
         assert(
@@ -127,6 +140,13 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
                 tasks[i].precede(tasks[j]);
             }
         }
+    }
+}
+
+auto Hephaestus::initialize_systems() -> void {
+    for (auto& system : systems) {
+        (*system).cache_affected_archetypes(archetypes);
+        (*system).create_query();
     }
 }
 

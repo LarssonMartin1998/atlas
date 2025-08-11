@@ -1,17 +1,21 @@
 #pragma once
 
-#include "hephaestus/ArchetypeMap.hpp"
-#include "hephaestus/Concepts.hpp"
-#include "hephaestus/SystemBase.hpp"
-#include "hephaestus/Utils.hpp"
-#include "hephaestus/query/Query.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <functional>
+#include <ranges>
 #include <taskflow/algorithm/for_each.hpp>
 #include <taskflow/taskflow.hpp>
 #include <tuple>
 #include <utility>
 #include <vector>
+
+#include "hephaestus/Archetype.hpp"
+#include "hephaestus/ArchetypeMap.hpp"
+#include "hephaestus/Concepts.hpp"
+#include "hephaestus/SystemBase.hpp"
+#include "hephaestus/query/Query.hpp"
+#include "hephaestus/query/QueryComponentsPipeline.hpp"
 
 namespace atlas::core {
 class IEngine;
@@ -23,13 +27,8 @@ class System final : public SystemBase {
   public:
     using SystemFunc = std::function<void(const core::IEngine&, std::tuple<ComponentTypes&...>)>;
 
-    explicit System(
-        SystemFunc func,
-        const ArchetypeMap& archetypes,
-        std::vector<SystemDependencies> dependencies
-    )
-        : func{std::move(func)}
-        , query{archetypes, std::move(dependencies)} {}
+    explicit System(SystemFunc func)
+        : func{std::move(func)} {}
 
     System(const System&) = delete;
     auto operator=(const System&) -> System& = delete;
@@ -41,9 +40,14 @@ class System final : public SystemBase {
 
     auto set_concurrent_systems(std::size_t estimate) -> void override;
     auto execute(const core::IEngine& engine, tf::Subflow& subflow) -> void override;
+    auto cache_affected_archetypes(const ArchetypeMap& archetypes) -> void override;
+    auto create_query() -> void override;
 
   private:
+    auto calculate_archetype_version_cumsum() -> std::uint64_t;
+
     Query<ComponentTypes...> query;
+    std::vector<std::reference_wrapper<Archetype>> affected_archetypes;
     SystemFunc func;
 
     // How many systems which are being executed
@@ -60,7 +64,7 @@ auto System<ComponentTypes...>::set_concurrent_systems(std::size_t estimate) -> 
 
 template <AllTypeOfComponent... ComponentTypes>
 auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow& subflow) -> void {
-    const auto& entity_components = query.get();
+    const auto& entity_components = query.get(calculate_archetype_version_cumsum());
     const auto entity_count = entity_components.size();
 
     if (entity_count == 0) {
@@ -92,6 +96,35 @@ auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow
         [this, &engine, &entity_components](std::size_t i) {
             func(engine, entity_components[i]);
         }
+    );
+}
+
+template <AllTypeOfComponent... ComponentTypes>
+auto System<ComponentTypes...>::cache_affected_archetypes(const ArchetypeMap& archetypes) -> void {
+    affected_archetypes = filter_archetypes<ComponentTypes...>(archetypes)
+                          | std::ranges::views::transform(
+                              [&](const auto& pair) -> std::reference_wrapper<Archetype> {
+                                  auto& archetype = *pair.second;
+                                  return std::ref(archetype);
+                              }
+                          )
+                          | std::ranges::to<std::vector>();
+}
+
+template <AllTypeOfComponent... ComponentTypes>
+auto System<ComponentTypes...>::create_query() -> void {
+    query.set_archetypes(affected_archetypes);
+}
+
+template <AllTypeOfComponent... ComponentTypes>
+auto System<ComponentTypes...>::calculate_archetype_version_cumsum() -> std::uint64_t {
+    return std::ranges::fold_left(
+        affected_archetypes
+            | std::views::transform([](const Archetype& archetype) -> std::uint64_t {
+                  return archetype.get_version();
+              }),
+        std::uint64_t{0},
+        std::plus<>{}
     );
 }
 } // namespace atlas::hephaestus

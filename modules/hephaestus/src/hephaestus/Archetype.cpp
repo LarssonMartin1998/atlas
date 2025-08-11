@@ -23,6 +23,12 @@ auto Archetype::destroy_entity(Entity entity) -> bool {
     ent_to_component_index.erase(entity);
     component_index_to_ent.pop_back();
 
+    version++;
+
     return true;
+}
+
+auto Archetype::get_version() const -> std::uint64_t {
+    return version;
 }
 } // namespace atlas::hephaestus

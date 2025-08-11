@@ -1,7 +1,9 @@
 #pragma once
 
+#include <functional>
 #include <ranges>
 
+#include "hephaestus/Archetype.hpp"
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
 #include "hephaestus/Utils.hpp"
@@ -21,10 +23,10 @@ auto filter_archetypes(const ArchetypeMap& map) {
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto build_pipeline(const ArchetypeMap& map) {
-    return filter_archetypes<ComponentTypes...>(map)
-           | std::ranges::views::transform([&](auto const& pair) {
-                 auto& archetype = *pair.second;
+auto build_pipeline(std::span<std::reference_wrapper<Archetype>> archetypes) {
+    return archetypes
+           | std::ranges::views::transform([&](std::reference_wrapper<Archetype> archetype_ref) {
+                 auto& archetype = archetype_ref.get();
                  return archetype.template get_entity_tuples<ComponentTypes...>();
              })
            | std::ranges::views::join;

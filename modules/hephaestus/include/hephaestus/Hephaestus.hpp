@@ -4,6 +4,7 @@
 #include <optional>
 #include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 #include <taskflow/taskflow.hpp>
@@ -63,6 +64,7 @@ class Hephaestus final : public core::Module, public core::ITickable {
     [[nodiscard]] static auto generate_unique_entity_id() -> Entity;
 
     auto build_systems_dependency_graph() -> void;
+    auto initialize_systems() -> void;
 
   private:
     std::vector<std::unique_ptr<SystemBase>> systems;
@@ -142,16 +144,8 @@ auto Hephaestus::create_system(Func&& func) -> void {
     using Components = TupleElements<TupleType>;
     using SystemType = typename Components::template Apply<System>;
 
-    auto dependencies = Components::make_dependencies();
-    system_nodes->emplace_back(SystemNode{.dependencies = dependencies});
-
-    auto new_system = std::make_unique<SystemType>(
-        std::forward<Func>(func),
-        archetypes,
-        std::move(dependencies)
-    );
-
-    systems.emplace_back(std::move(new_system));
+    system_nodes->emplace_back(SystemNode{.dependencies = Components::make_dependencies()});
+    systems.emplace_back(std::make_unique<SystemType>(std::forward<Func>(func)));
 }
 
 template <AllTypeOfComponent... ComponentTypes>
