@@ -145,8 +145,7 @@ auto Hephaestus::build_systems_dependency_graph() -> void {
 
 auto Hephaestus::initialize_systems() -> void {
     for (auto& system : systems) {
-        (*system).cache_affected_archetypes(archetypes);
-        (*system).create_query();
+        (*system).create_query(archetypes);
     }
 }
 

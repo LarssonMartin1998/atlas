@@ -1,14 +1,29 @@
 #pragma once
 
-#include <cstdint>
 #include <functional>
-#include <optional>
 
+#include "hephaestus/Archetype.hpp"
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
 #include "hephaestus/query/QueryComponentsPipeline.hpp"
 
 namespace atlas::hephaestus {
+
+template <AllTypeOfComponent... ComponentTypes>
+using ComponentsVector = std::vector<std::tuple<ComponentTypes&...>>;
+
+template <AllTypeOfComponent... ComponentTypes>
+struct ComponentsCache {
+  public:
+    ComponentsVector<ComponentTypes...> components;
+
+  private:
+    template <AllTypeOfComponent... FriendComponentTypes>
+    friend class Query;
+
+    ArchetypeVersion last_version;
+};
+
 template <AllTypeOfComponent... ComponentTypes>
 class Query final {
   public:
@@ -23,60 +38,50 @@ class Query final {
     ~Query() = default;
 
   private:
-    using ComponentsVector = std::vector<std::tuple<ComponentTypes&...>>;
-
   public:
     [[nodiscard]]
-    inline auto get(std::uint64_t version_cumsum) const -> ComponentsVector&;
+    inline auto get() const -> std::vector<ComponentsCache<ComponentTypes...>>&;
 
-    inline auto set_archetypes(std::span<std::reference_wrapper<Archetype>> archetypes) -> void;
+    inline auto set_archetypes(const ArchetypeMap& archetypes) -> void;
 
   private:
-    [[nodiscard]] inline auto is_cache_dirty(std::uint64_t version_cumsum) const -> bool;
-
-    mutable std::optional<ComponentsVector> cache;
-    mutable std::uint64_t last_version_cumsum = 0;
-    std::span<std::reference_wrapper<Archetype>> archetypes;
+    mutable std::vector<ComponentsCache<ComponentTypes...>> cache_buckets;
+    std::vector<std::reference_wrapper<Archetype>> filtered_archetypes;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
-[[nodiscard]] inline auto Query<ComponentTypes...>::is_cache_dirty(
-    const std::uint64_t version_cumsum
-) const -> bool {
-    if (!cache.has_value()) {
-        return true;
+[[nodiscard]] inline auto Query<ComponentTypes...>::get() const
+    -> std::vector<ComponentsCache<ComponentTypes...>>& {
+    for (std::size_t i = 0; i < cache_buckets.size(); i++) {
+        const auto& archetype = filtered_archetypes[i];
+        const auto current_version = archetype.get().get_version();
+        if (current_version != cache_buckets[i].last_version) {
+            const auto& entity_tuples = archetype.get().get_entity_tuples<ComponentTypes...>();
+            // We evaluate the pipeline and collect it into a vector.
+            // This costs one iteration over the data, but enables size storage and
+            // random access. This can be used to chunk and parellize the execution
+            // of the systems. And should result in better performance and
+            // utilization.
+            cache_buckets[i].components = std::ranges::to<std::vector>(entity_tuples);
+            cache_buckets[i].last_version = current_version;
+        }
     }
 
-    if (last_version_cumsum != version_cumsum) {
-        return true;
-    }
-
-    return false;
+    return cache_buckets;
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-[[nodiscard]] inline auto Query<ComponentTypes...>::get(const std::uint64_t version_cumsum) const
-    -> ComponentsVector& {
-    if (is_cache_dirty(version_cumsum)) {
-        last_version_cumsum = version_cumsum;
-        auto pipeline = build_pipeline<ComponentTypes...>(archetypes);
+inline auto Query<ComponentTypes...>::set_archetypes(const ArchetypeMap& archetypes) -> void {
+    filtered_archetypes = filter_archetypes<ComponentTypes...>(archetypes)
+                          | std::ranges::views::transform(
+                              [&](const auto& pair) -> std::reference_wrapper<Archetype> {
+                                  auto& archetype = *pair.second;
+                                  return std::ref(archetype);
+                              }
+                          )
+                          | std::ranges::to<std::vector>();
 
-        // We evaluate the pipeline and collect it into a vector.
-        // This costs one iteration over the data, but enables size storage and
-        // random access. This can be used to chunk and parellize the execution
-        // of the systems. And should result in better performance and
-        // utilization.
-        ComponentsVector comp_vec = std::ranges::to<std::vector>(pipeline);
-        cache.emplace(std::move(comp_vec));
-    }
-
-    return *cache;
-}
-
-template <AllTypeOfComponent... ComponentTypes>
-inline auto Query<ComponentTypes...>::set_archetypes(
-    std::span<std::reference_wrapper<Archetype>> new_archetypes
-) -> void {
-    archetypes = new_archetypes;
+    cache_buckets = std::vector<ComponentsCache<ComponentTypes...>>();
+    cache_buckets.resize(filtered_archetypes.size());
 }
 } // namespace atlas::hephaestus

@@ -1,21 +1,16 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdint>
 #include <functional>
-#include <ranges>
 #include <taskflow/algorithm/for_each.hpp>
 #include <taskflow/taskflow.hpp>
 #include <tuple>
 #include <utility>
-#include <vector>
 
-#include "hephaestus/Archetype.hpp"
 #include "hephaestus/ArchetypeMap.hpp"
 #include "hephaestus/Concepts.hpp"
 #include "hephaestus/SystemBase.hpp"
 #include "hephaestus/query/Query.hpp"
-#include "hephaestus/query/QueryComponentsPipeline.hpp"
 
 namespace atlas::core {
 class IEngine;
@@ -40,14 +35,10 @@ class System final : public SystemBase {
 
     auto set_concurrent_systems(std::size_t estimate) -> void override;
     auto execute(const core::IEngine& engine, tf::Subflow& subflow) -> void override;
-    auto cache_affected_archetypes(const ArchetypeMap& archetypes) -> void override;
-    auto create_query() -> void override;
+    auto create_query(const ArchetypeMap& archetypes) -> void override;
 
   private:
-    auto calculate_archetype_version_cumsum() -> std::uint64_t;
-
     Query<ComponentTypes...> query;
-    std::vector<std::reference_wrapper<Archetype>> affected_archetypes;
     SystemFunc func;
 
     // How many systems which are being executed
@@ -64,67 +55,54 @@ auto System<ComponentTypes...>::set_concurrent_systems(std::size_t estimate) -> 
 
 template <AllTypeOfComponent... ComponentTypes>
 auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow& subflow) -> void {
-    const auto& entity_components = query.get(calculate_archetype_version_cumsum());
-    const auto entity_count = entity_components.size();
+    const auto& components_cache_buckets = query.get();
+    for (const auto& cache_bucket : components_cache_buckets) {
+        const auto& components = cache_bucket.components;
+        const auto entity_count = components.size();
 
-    if (entity_count == 0) {
-        return;
+        // READ COMMENT BELOW FOR EXPLANATION REGARDING THIS CODE
+        // ------------------------------------------------------
+        //             constexpr std::size_t MIN_PARALLEL_THRESHOLD = 128;
+        //             if (entity_count < MIN_PARALLEL_THRESHOLD) {
+        //             for (const auto& data : components) {
+        //                 func(engine, data);
+        //             }
+        //                 continue;
+        //             }
+        //             const auto num_workers = subflow.executor().num_workers();
+        //             const auto effective_workers = std::max<std::size_t>(
+        //                 1,
+        //                 num_workers / concurrent_systems_estimate
+        //             );
+        //             constexpr std::size_t MIN_CHUNK_SIZE = MIN_PARALLEL_THRESHOLD / 2;
+        //             auto chunk_size = std::max<std::size_t>(1, entity_count / effective_workers);
+        //             chunk_size = std::max<std::size_t>(chunk_size, MIN_CHUNK_SIZE);
+        // ------------------------------------------------------
+
+        // I cant explain this, but when using a subflow to iterate each bucket, the cpu utilization
+        // is drastically improved. Additionally, the scheduling is better in ALL testing I have
+        // done when using the entity_count as the chunk size, you would think that this would be
+        // the same as simply iterating the bucket regularly within the original taskflow, however,
+        // them the cpu utilization is crippled across all cores to ~35% condistently on
+        // windows/mac/linux, tested on multiple computers.
+        // This even improves the frame time for when we have cache rebuilds ¯\_(ツ)_/¯
+        //
+        // This is currently the best result across multiple configurations, however, I am keeping
+        // my original implementation above commented out until I understand this or can find a
+        // logical reason for why this is happening.
+        subflow.for_each_index(
+            std::size_t{0},
+            entity_count,
+            std::max<std::size_t>(entity_count, 1),
+            [this, &engine, &components](std::size_t i) {
+                func(engine, components[i]);
+            }
+        );
     }
-
-    constexpr std::size_t MIN_PARALLEL_THRESHOLD = 128;
-    if (entity_count < MIN_PARALLEL_THRESHOLD) {
-        for (const auto& data : entity_components) {
-            func(engine, data);
-        }
-        return;
-    }
-
-    const auto num_workers = subflow.executor().num_workers();
-    const auto effective_workers = std::max<std::size_t>(
-        1,
-        num_workers / concurrent_systems_estimate
-    );
-
-    constexpr std::size_t MIN_PARALLEL_WORKERS = MIN_PARALLEL_THRESHOLD / 2;
-    auto chunk_size = std::max<std::size_t>(1, entity_count / effective_workers);
-    chunk_size = std::max<std::size_t>(chunk_size, MIN_PARALLEL_WORKERS);
-
-    subflow.for_each_index(
-        std::size_t{0},
-        entity_count,
-        chunk_size,
-        [this, &engine, &entity_components](std::size_t i) {
-            func(engine, entity_components[i]);
-        }
-    );
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-auto System<ComponentTypes...>::cache_affected_archetypes(const ArchetypeMap& archetypes) -> void {
-    affected_archetypes = filter_archetypes<ComponentTypes...>(archetypes)
-                          | std::ranges::views::transform(
-                              [&](const auto& pair) -> std::reference_wrapper<Archetype> {
-                                  auto& archetype = *pair.second;
-                                  return std::ref(archetype);
-                              }
-                          )
-                          | std::ranges::to<std::vector>();
-}
-
-template <AllTypeOfComponent... ComponentTypes>
-auto System<ComponentTypes...>::create_query() -> void {
-    query.set_archetypes(affected_archetypes);
-}
-
-template <AllTypeOfComponent... ComponentTypes>
-auto System<ComponentTypes...>::calculate_archetype_version_cumsum() -> std::uint64_t {
-    return std::ranges::fold_left(
-        affected_archetypes
-            | std::views::transform([](const Archetype& archetype) -> std::uint64_t {
-                  return archetype.get_version();
-              }),
-        std::uint64_t{0},
-        std::plus<>{}
-    );
+auto System<ComponentTypes...>::create_query(const ArchetypeMap& archetypes) -> void {
+    query.set_archetypes(archetypes);
 }
 } // namespace atlas::hephaestus

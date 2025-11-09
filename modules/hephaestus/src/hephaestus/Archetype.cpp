@@ -28,7 +28,7 @@ auto Archetype::destroy_entity(Entity entity) -> bool {
     return true;
 }
 
-auto Archetype::get_version() const -> std::uint64_t {
+auto Archetype::get_version() const -> ArchetypeVersion {
     return version;
 }
 } // namespace atlas::hephaestus

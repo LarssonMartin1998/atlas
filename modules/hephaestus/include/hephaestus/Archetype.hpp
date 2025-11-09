@@ -27,6 +27,8 @@ struct IComponentStorage {
     virtual auto destroy(std::size_t index) -> void = 0;
 };
 
+using ArchetypeVersion = std::uint64_t;
+
 template <TypeOfComponent ComponentType>
 struct ComponentStorage final : public IComponentStorage {
     [[nodiscard]] auto size() const -> std::size_t override {
@@ -73,7 +75,7 @@ class Archetype final {
     template <AllTypeOfComponent... ComponentTypes>
     auto get_entity_tuples() -> decltype(auto);
 
-    [[nodiscard]] auto get_version() const -> std::uint64_t;
+    [[nodiscard]] auto get_version() const -> ArchetypeVersion;
 
   private:
     template <TypeOfComponent ComponentType>
@@ -87,7 +89,7 @@ class Archetype final {
     std::vector<Entity> component_index_to_ent;
     std::unordered_map<ComponentTypeId, std::unique_ptr<IComponentStorage>> component_storages;
 
-    std::uint64_t version = 0;
+    ArchetypeVersion version = 0;
 };
 
 template <AllTypeOfComponent... ComponentTypes>
