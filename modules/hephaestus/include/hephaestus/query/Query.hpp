@@ -45,16 +45,16 @@ class Query final {
     inline auto set_archetypes(const ArchetypeMap& archetypes) -> void;
 
   private:
-    inline auto perform_cache_maintenance() const;
+    inline auto perform_cache_maintenance() const -> void;
     inline auto partial_add_to_cache(
         const Archetype& archetype,
         ComponentsCache<ComponentTypes...>& cache_bucket,
         const cache_recording::RecordedChange& change
-    ) const;
+    ) const -> void;
     inline auto partial_remove_from_cache(
         ComponentsCache<ComponentTypes...>& cache_bucket,
         const cache_recording::RecordedChange& change
-    ) const;
+    ) const -> void;
 
     mutable std::vector<ComponentsCache<ComponentTypes...>> cache_buckets;
     std::vector<std::reference_wrapper<Archetype>> filtered_archetypes;
@@ -83,7 +83,7 @@ inline auto Query<ComponentTypes...>::set_archetypes(const ArchetypeMap& archety
 }
 
 template <AllTypeOfComponent... ComponentTypes>
-inline auto Query<ComponentTypes...>::perform_cache_maintenance() const {
+inline auto Query<ComponentTypes...>::perform_cache_maintenance() const -> void {
     for (std::size_t i = 0; i < cache_buckets.size(); i++) {
         auto& cache_bucket = cache_buckets[i];
 
@@ -129,7 +129,7 @@ inline auto Query<ComponentTypes...>::partial_add_to_cache(
     const Archetype& archetype,
     ComponentsCache<ComponentTypes...>& cache_bucket,
     const cache_recording::RecordedChange& change
-) const {
+) const -> void {
     cache_bucket.components.emplace_back(
         archetype.get_entity_tuple<ComponentTypes...>(change.component_index)
     );
@@ -139,7 +139,7 @@ template <AllTypeOfComponent... ComponentTypes>
 inline auto Query<ComponentTypes...>::partial_remove_from_cache(
     ComponentsCache<ComponentTypes...>& cache_bucket,
     const cache_recording::RecordedChange& change
-) const {
+) const -> void {
     auto& components = cache_bucket.components;
     if (components.empty()) {
         // This shouldnt happen unless something goes seriously wrong. If we have a recoreded change
