@@ -140,6 +140,13 @@ inline auto Query<ComponentTypes...>::partial_remove_from_cache(
     const cache_recording::RecordedChange& change
 ) const {
     auto& components = cache_bucket.components;
+    if (components.empty()) {
+        // This shouldnt happen unless something goes seriously wrong. If we have a recoreded change
+        // for a removal from the truth (archetype), then this should exactly mirror the archetype
+        // before that change.
+        return;
+    }
+
     const auto last_index = components.size() - 1;
 
     if (last_index != change.component_index) {
