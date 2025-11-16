@@ -106,7 +106,6 @@ inline auto Query<ComponentTypes...>::perform_cache_maintenance() const {
             // of the systems. And should result in better performance and
             // utilization. Plus allows for easily updating the cache partially on the fly.
             cache_bucket.components = std::ranges::to<std::vector>(entity_tuples);
-            cache_bucket.last_version = current_version;
         } else {
             for (const auto& change : changes) {
                 using namespace cache_recording;
@@ -120,6 +119,8 @@ inline auto Query<ComponentTypes...>::perform_cache_maintenance() const {
                 }
             }
         }
+
+        cache_bucket.last_version = current_version;
     }
 }
 
