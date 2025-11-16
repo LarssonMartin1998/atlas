@@ -102,7 +102,7 @@ inline auto Query<ComponentTypes...>::perform_cache_maintenance() const {
             const auto& entity_tuples = archetype.get_entity_tuples<ComponentTypes...>();
             // We evaluate the pipeline and collect it into a vector.
             // This costs one iteration over the data, but enables size storage and
-            // random access. This can be used to chunk and parellize the execution
+            // random access. This can be used to chunk and parellalize the execution
             // of the systems. And should result in better performance and
             // utilization. Plus allows for easily updating the cache partially on the fly.
             cache_bucket.components = std::ranges::to<std::vector>(entity_tuples);

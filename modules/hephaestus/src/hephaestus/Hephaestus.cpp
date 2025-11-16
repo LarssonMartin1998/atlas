@@ -48,7 +48,7 @@ auto Hephaestus::tick() -> void {
     tot_num_created_ents += creation_queue.size();
     creation_queue.clear();
 
-    // TODO: Separate system caching into it's own frame step HERE and run it before executing the
+    // TODO: Separate system caching into its own frame step HERE and run it before executing the
     // systems. Additionally, create cache buckets for each archetype/version/tuple result instead
     // of storing it as one final result. This allows us to ONLY invalidate EXACTLY what is changed
     // in the cache, plus, with different buckets we can run the caching invalidation and rebuilding

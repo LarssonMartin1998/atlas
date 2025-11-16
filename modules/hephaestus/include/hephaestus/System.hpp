@@ -83,7 +83,7 @@ auto System<ComponentTypes...>::execute(const core::IEngine& engine, tf::Subflow
         // is drastically improved. Additionally, the scheduling is better in ALL testing I have
         // done when using the entity_count as the chunk size, you would think that this would be
         // the same as simply iterating the bucket regularly within the original taskflow, however,
-        // them the cpu utilization is crippled across all cores to ~35% condistently on
+        // them the cpu utilization is crippled across all cores to ~35% consistently on
         // windows/mac/linux, tested on multiple computers.
         // This even improves the frame time for when we have cache rebuilds ¯\_(ツ)_/¯
         //

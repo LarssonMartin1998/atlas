@@ -114,7 +114,7 @@ class Archetype final {
 
     // We utilize this in order to be able to replay changes on the cache in each query instead of
     // rebuilding the entire archetype cache for that query as soon as its dirty. This is a massive
-    // gain in frame time smoothnes in large scale simulations.
+    // gain in frame time smoothness in large scale simulations.
     std::vector<cache_recording::RecordedChange> recorded_changes_this_frame;
 
     ArchetypeVersion version = 0;
