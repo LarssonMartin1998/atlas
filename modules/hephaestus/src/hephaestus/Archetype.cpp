@@ -23,6 +23,31 @@ auto Archetype::destroy_entity(Entity entity) -> bool {
     ent_to_component_index.erase(entity);
     component_index_to_ent.pop_back();
 
+    using namespace cache_recording;
+    recorded_changes_this_frame.emplace_back(
+        RecordedChange{
+            .action = RecordedChangeAction::DestroyEntity,
+            .component_index = component_index_for_entity,
+        }
+    );
+
+    version++;
+
     return true;
+}
+
+auto Archetype::get_version() const -> ArchetypeVersion {
+    return version;
+}
+auto Archetype::get_recorded_changes() const -> std::span<const cache_recording::RecordedChange> {
+    return recorded_changes_this_frame;
+}
+
+auto Archetype::get_num_entities() const -> std::size_t {
+    return ent_to_component_index.size();
+}
+
+auto Archetype::clear_recorded_changes() -> void {
+    recorded_changes_this_frame.clear();
 }
 } // namespace atlas::hephaestus

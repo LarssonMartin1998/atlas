@@ -19,14 +19,4 @@ auto filter_archetypes(const ArchetypeMap& map) {
                return query_key.is_subset_of(archetype_key);
            });
 }
-
-template <AllTypeOfComponent... ComponentTypes>
-auto build_pipeline(const ArchetypeMap& map) {
-    return filter_archetypes<ComponentTypes...>(map)
-           | std::ranges::views::transform([&](auto const& pair) {
-                 auto& archetype = *pair.second;
-                 return archetype.template get_entity_tuples<ComponentTypes...>();
-             })
-           | std::ranges::views::join;
-}
 } // namespace atlas::hephaestus
