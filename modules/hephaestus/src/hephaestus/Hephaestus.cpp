@@ -3,6 +3,7 @@
 #include "hephaestus/Archetype.hpp"
 #include "hephaestus/Component.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -55,6 +56,11 @@ auto Hephaestus::tick() -> void {
 
     if (!systems_graph.empty()) {
         systems_executor.run(systems_graph).wait();
+    }
+
+    for (auto& archetype_kv : archetypes) {
+        auto& [_, archetype] = archetype_kv;
+        (*archetype).clear_recorded_changes();
     }
 
     // TODO: Handle and resolve all events here (non recursive, new events will be handled next
@@ -163,6 +169,16 @@ auto Hephaestus::create_archetype_with_signature(
 }
 
 auto Hephaestus::destroy_entity(Entity entity) -> void {
+    if (const auto result = std::ranges::find_if(
+            destroy_queue,
+            [&entity](const Entity& other) {
+                return entity == other;
+            }
+        );
+        result != destroy_queue.end()) {
+        return;
+    }
+
     destroy_queue.emplace_back(entity);
 }
 
